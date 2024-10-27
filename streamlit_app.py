@@ -3,7 +3,6 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-import random
 
 # Custom CSS for styling
 st.markdown(
@@ -68,9 +67,9 @@ if choice == "Upload Your Data":
         st.sidebar.header("Select Analysis Option")
         analysis_option = st.sidebar.selectbox("Choose analysis type", [
             "Summary Statistics",
-            "Plot Feature Distributions",
-            "Filter Rows",
-            "Compare Two Variables",
+            "Plot One Variable",
+            "Plot Two Variables",
+            "Plot Three Variables",
             "AI Analysis"
         ])
 
@@ -79,42 +78,215 @@ if choice == "Upload Your Data":
             st.subheader("Summary Statistics")
             st.write(data.describe())
 
-        # Plot Feature Distributions
-        elif analysis_option == "Plot Feature Distributions":
-            st.subheader("Plot Feature Distributions")
-            feature = st.selectbox("Select feature for distribution plot:", data.columns)
+        # Plot One Variable
+        elif analysis_option == "Plot One Variable":
+            st.subheader("Plot One Variable")
+            feature = st.selectbox("Select feature to plot:", data.columns)
+            plot_type = st.selectbox("Select plot type:", [
+                "Line Chart",
+                "Bar Chart",
+                "Pie Chart",
+                "Histogram",
+                "Box Plot",
+                "Density Plot",
+                "Area Chart",
+                "Dot Plot",
+                "Frequency Polygon"
+            ])
 
             plt.figure(figsize=(10, 6))
-            sns.histplot(data[feature], kde=True)
-            plt.title(f'Distribution of {feature}')
-            plt.xlabel(feature)
-            plt.ylabel('Frequency')
+
+            if plot_type == "Line Chart":
+                plt.plot(data[feature])
+                plt.title(f'Line Chart of {feature}')
+                plt.xlabel('Index')
+                plt.ylabel(feature)
+
+            elif plot_type == "Bar Chart":
+                data[feature].value_counts().plot(kind='bar')
+                plt.title(f'Bar Chart of {feature}')
+                plt.xlabel(feature)
+                plt.ylabel('Count')
+
+            elif plot_type == "Pie Chart":
+                data[feature].value_counts().plot(kind='pie', autopct='%1.1f%%')
+                plt.title(f'Pie Chart of {feature}')
+
+            elif plot_type == "Histogram":
+                sns.histplot(data[feature], kde=True)
+                plt.title(f'Histogram of {feature}')
+                plt.xlabel(feature)
+                plt.ylabel('Frequency')
+
+            elif plot_type == "Box Plot":
+                sns.boxplot(y=data[feature])
+                plt.title(f'Boxplot of {feature}')
+
+            elif plot_type == "Density Plot":
+                sns.kdeplot(data[feature])
+                plt.title(f'Density Plot of {feature}')
+
+            elif plot_type == "Area Chart":
+                data[feature].plot(kind='area')
+                plt.title(f'Area Chart of {feature}')
+                plt.xlabel('Index')
+                plt.ylabel(feature)
+
+            elif plot_type == "Dot Plot":
+                plt.plot(data.index, data[feature], 'o')
+                plt.title(f'Dot Plot of {feature}')
+                plt.xlabel('Index')
+                plt.ylabel(feature)
+
+            elif plot_type == "Frequency Polygon":
+                sns.histplot(data[feature], kde=False, bins=30)
+                plt.title(f'Frequency Polygon of {feature}')
+                plt.xlabel(feature)
+                plt.ylabel('Frequency')
+
             st.pyplot(plt)
 
-        # Filter Rows
-        elif analysis_option == "Filter Rows":
-            st.subheader("Filter Rows by Value Range")
-            filter_column = st.selectbox("Select column to filter", data.select_dtypes(include=['float64', 'int64']).columns)
-            min_value = st.number_input(f"Minimum value for {filter_column}:", value=float(data[filter_column].min()))
-            max_value = st.number_input(f"Maximum value for {filter_column}:", value=float(data[filter_column].max()))
-
-            filtered_data = data[(data[filter_column] >= min_value) & (data[filter_column] <= max_value)]
-            st.write("Filtered Data:")
-            st.dataframe(filtered_data)
-
-        # Compare Two Variables
-        elif analysis_option == "Compare Two Variables":
-            st.subheader("Compare Two Variables")
+        # Plot Two Variables
+        elif analysis_option == "Plot Two Variables":
+            st.subheader("Plot Two Variables")
             x_axis = st.selectbox('Select X variable:', data.columns)
             y_axis = st.selectbox('Select Y variable:', data.columns)
+            plot_type = st.selectbox("Select plot type:", [
+                "Scatter Plot",
+                "Box Plot",
+                "Line Graph",
+                "Grouped Bar Chart",
+                "Heat Map",
+                "Bubble Chart",
+                "Stacked Bar Chart",
+                "Violin Chart"
+            ])
 
             plt.figure(figsize=(10, 6))
-            sns.scatterplot(data=data, x=x_axis, y=y_axis)
-            plt.title(f'Relationship between {x_axis} and {y_axis}')
-            plt.xlabel(x_axis)
-            plt.ylabel(y_axis)
-            plt.grid()
+
+            if plot_type == "Scatter Plot":
+                sns.scatterplot(data=data, x=x_axis, y=y_axis)
+                plt.title(f'Scatter Plot of {y_axis} vs {x_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel(y_axis)
+
+            elif plot_type == "Box Plot":
+                sns.boxplot(data=data, x=x_axis, y=y_axis)
+                plt.title(f'Box Plot of {y_axis} by {x_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel(y_axis)
+
+            elif plot_type == "Line Graph":
+                plt.plot(data[x_axis], data[y_axis])
+                plt.title(f'Line Graph of {y_axis} vs {x_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel(y_axis)
+
+            elif plot_type == "Grouped Bar Chart":
+                data.groupby(x_axis)[y_axis].mean().plot(kind='bar')
+                plt.title(f'Grouped Bar Chart of {y_axis} by {x_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel(f'Mean {y_axis}')
+
+            elif plot_type == "Heat Map":
+                correlation_matrix = data.corr()
+                sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+                plt.title('Heat Map of Correlation Matrix')
+
+            elif plot_type == "Bubble Chart":
+                plt.scatter(data[x_axis], data[y_axis], s=data[y_axis]*10, alpha=0.5)
+                plt.title(f'Bubble Chart of {y_axis} vs {x_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel(y_axis)
+
+            elif plot_type == "Stacked Bar Chart":
+                data.groupby([x_axis, y_axis]).size().unstack().plot(kind='bar', stacked=True)
+                plt.title(f'Stacked Bar Chart of {y_axis} by {x_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel('Count')
+
+            elif plot_type == "Violin Chart":
+                sns.violinplot(x=x_axis, y=y_axis, data=data)
+                plt.title(f'Violin Chart of {y_axis} by {x_axis}')
+
             st.pyplot(plt)
+
+        # Plot Three Variables
+        elif analysis_option == "Plot Three Variables":
+            st.subheader("Plot Three Variables")
+            x_axis = st.selectbox('Select X variable:', data.columns)
+            y_axis = st.selectbox('Select Y variable:', data.columns, index=1)
+            z_axis = st.selectbox('Select Z variable (size or color):', data.columns)
+
+            plot_type = st.selectbox("Select plot type:", [
+                "3D Scatter Plot",
+                "Surface Plot",
+                "Bubble Chart",
+                "3D Heatmap",
+                "Grid Plot",
+                "Contour Plot",
+                "Raster Plot",
+                "Tile Plot"
+            ])
+
+            fig = plt.figure(figsize=(10, 6))
+            
+            if plot_type == "3D Scatter Plot":
+                ax = fig.add_subplot(111, projection='3d')
+                ax.scatter(data[x_axis], data[y_axis], data[z_axis])
+                ax.set_title(f'3D Scatter Plot of {y_axis}, {x_axis}, {z_axis}')
+                ax.set_xlabel(x_axis)
+                ax.set_ylabel(y_axis)
+                ax.set_zlabel(z_axis)
+
+            elif plot_type == "Surface Plot":
+                ax = fig.add_subplot(111, projection='3d')
+                X, Y = np.meshgrid(data[x_axis], data[y_axis])
+                Z = data[z_axis].values.reshape(X.shape)
+                ax.plot_surface(X, Y, Z, cmap='viridis')
+                ax.set_title(f'Surface Plot of {z_axis} over {x_axis} and {y_axis}')
+                ax.set_xlabel(x_axis)
+                ax.set_ylabel(y_axis)
+                ax.set_zlabel(z_axis)
+
+            elif plot_type == "Bubble Chart":
+                plt.scatter(data[x_axis], data[y_axis], s=data[z_axis]*10, alpha=0.5)
+                plt.title(f'Bubble Chart of {y_axis} vs {x_axis} with size {z_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel(y_axis)
+
+            elif plot_type == "3D Heatmap":
+                # 3D Heatmap code (simplified)
+                ax = fig.add_subplot(111, projection='3d')
+                ax.scatter(data[x_axis], data[y_axis], data[z_axis])
+                ax.set_title('3D Heatmap (scatter representation)')
+                ax.set_xlabel(x_axis)
+                ax.set_ylabel(y_axis)
+                ax.set_zlabel(z_axis)
+
+            elif plot_type == "Grid Plot":
+                # Create a grid plot if suitable (simplified)
+                plt.imshow(data.corr(), cmap='coolwarm')
+                plt.title('Grid Plot of Correlations')
+                plt.colorbar()
+
+            elif plot_type == "Contour Plot":
+                plt.tricontourf(data[x_axis], data[y_axis], data[z_axis], cmap='viridis')
+                plt.title(f'Contour Plot of {z_axis} vs {x_axis} and {y_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel(y_axis)
+
+            elif plot_type == "Raster Plot":
+                plt.imshow(data.pivot_table(values=z_axis, index=y_axis, columns=x_axis), cmap='viridis', aspect='auto')
+                plt.title(f'Raster Plot of {z_axis} vs {x_axis} and {y_axis}')
+                plt.colorbar()
+
+            elif plot_type == "Tile Plot":
+                plt.imshow(data.pivot_table(values=z_axis, index=y_axis, columns=x_axis), cmap='viridis', aspect='equal')
+                plt.title(f'Tile Plot of {z_axis} vs {x_axis} and {y_axis}')
+                plt.colorbar()
+
+            st.pyplot(fig)
 
         # AI Analysis
         elif analysis_option == "AI Analysis":
@@ -127,3 +299,4 @@ if choice == "Upload Your Data":
 elif choice == "Contact Us":
     st.subheader("Contact Information")
     st.write("If you have any questions, please contact us via email: support@example.com")
+
