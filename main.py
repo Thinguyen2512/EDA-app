@@ -46,7 +46,7 @@ def generate_analysis(feature, data):
 st.title("EDA TOOL")
 
 # Navigation menu
-menu = ["About Us", "Upload Your Data", "Create Your Own Data", "Contact Us"]
+menu = ["About Us", "Upload Your Data", "Contact Us"]
 choice = st.sidebar.selectbox("Select feature", menu)
 
 # Upload Data section
@@ -122,36 +122,6 @@ if choice == "Upload Your Data":
             feature = st.selectbox("Select feature for analysis:", data.columns)
             analysis = generate_analysis(feature, data)
             st.write(analysis)
-
-# Create Your Own Data section
-elif choice == "Create Your Own Data":
-    st.subheader("Create Your Own Dataset")
-
-    num_rows = st.number_input("Enter number of rows:", min_value=1, max_value=1000, value=10)
-    num_columns = st.number_input("Enter number of columns:", min_value=1, max_value=10, value=2)
-
-    column_names = []
-    for i in range(num_columns):
-        col_name = st.text_input(f"Column {i + 1} Name:", f"Feature{i + 1}")
-        column_names.append(col_name)
-
-    # Input for data
-    data_dict = {name: [] for name in column_names}
-
-    for i in range(num_rows):
-        for col_name in column_names:
-            value = st.number_input(f"Value for {col_name} (Row {i + 1}):", key=f"{col_name}_{i}")
-            data_dict[col_name].append(value)
-
-    if st.button("Generate Dataset"):
-        generated_data = pd.DataFrame(data_dict)
-
-        st.write("Generated Data:")
-        st.dataframe(generated_data)
-
-        # Export CSV
-        csv = generated_data.to_csv(index=False).encode('utf-8')
-        st.download_button("Download CSV", csv, f"generated_data.csv")
 
 # Contact Us section
 elif choice == "Contact Us":
