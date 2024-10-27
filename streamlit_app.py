@@ -3,6 +3,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.interpolate import griddata  # Importing griddata
 
 # Custom CSS for styling
 st.markdown(
@@ -316,4 +317,5 @@ if choice == "Upload Your Data":
 elif choice == "Contact Us":
     st.subheader("Contact Information")
     st.write("If you have any questions, please contact us via email: support@example.com")
+
 
