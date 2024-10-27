@@ -189,18 +189,18 @@ if choice == "Upload Your Data":
                 plt.ylabel(f'Mean {y_axis}')
 
             elif plot_type == "Heat Map":
-                # Chọn các cột số từ DataFrame
-                numeric_data = data[[x_axis, y_axis]].select_dtypes(include=[np.number])
+        # Select only numeric columns for correlation
+        numeric_data = data[[x_axis, y_axis]].select_dtypes(include=[np.number])
 
-               # Kiểm tra nếu có đủ dữ liệu số
-               if numeric_data.shape[0] == 0:
-                   st.error("Selected variables do not contain numeric data.")
-               else:
-               # Tính toán ma trận tương quan
-                   correlation_matrix = numeric_data.corr()
-                   sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
-                   plt.title('Heat Map of Correlation between Selected Variables')
-                   st.pyplot(plt)
+        # Check if there is enough numeric data
+        if numeric_data.shape[0] == 0:
+            st.error("Selected variables do not contain numeric data.")
+        else:
+            # Compute correlation matrix
+            correlation_matrix = numeric_data.corr()
+            sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+            plt.title('Heat Map of Correlation between Selected Variables')
+            st.pyplot(plt)
                    
             elif plot_type == "Bubble Chart":
                 plt.scatter(data[x_axis], data[y_axis], s=data[y_axis]*10, alpha=0.5)
