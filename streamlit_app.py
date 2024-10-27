@@ -189,19 +189,19 @@ if choice == "Upload Your Data":
                 plt.ylabel(f'Mean {y_axis}')
 
             elif plot_type == "Heat Map":
-        # Select only numeric columns for correlation
-        numeric_data = data[[x_axis, y_axis]].select_dtypes(include=[np.number])
+                # Select only numeric columns for correlation
+                numeric_data = data[[x_axis, y_axis]].select_dtypes(include=[np.number])
 
-        # Check if there is enough numeric data
-        if numeric_data.shape[0] == 0:
-            st.error("Selected variables do not contain numeric data.")
-        else:
-            # Compute correlation matrix
-            correlation_matrix = numeric_data.corr()
-            sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
-            plt.title('Heat Map of Correlation between Selected Variables')
-            st.pyplot(plt)
-                   
+                # Check if there is enough numeric data
+                if numeric_data.shape[0] == 0:
+                    st.error("Selected variables do not contain numeric data.")
+                else:
+                    # Compute correlation matrix
+                    correlation_matrix = numeric_data.corr()
+                    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+                    plt.title('Heat Map of Correlation between Selected Variables')
+                    st.pyplot(plt)
+
             elif plot_type == "Bubble Chart":
                 plt.scatter(data[x_axis], data[y_axis], s=data[y_axis]*10, alpha=0.5)
                 plt.title(f'Bubble Chart of {y_axis} vs {x_axis}')
@@ -249,12 +249,10 @@ if choice == "Upload Your Data":
                 ax.set_zlabel(z_axis)
 
             elif plot_type == "Surface Plot":
-                # Ensure you have enough points and valid data
                 x_unique = np.unique(data[x_axis])
                 y_unique = np.unique(data[y_axis])
                 X, Y = np.meshgrid(x_unique, y_unique)
 
-                # Use griddata to interpolate the Z values
                 Z = griddata((data[x_axis], data[y_axis]), data[z_axis], (X, Y), method='linear')
 
                 ax = fig.add_subplot(111, projection='3d')
@@ -271,7 +269,6 @@ if choice == "Upload Your Data":
                 plt.ylabel(y_axis)
 
             elif plot_type == "3D Heatmap":
-                # 3D Heatmap code (simplified)
                 ax = fig.add_subplot(111, projection='3d')
                 ax.scatter(data[x_axis], data[y_axis], data[z_axis])
                 ax.set_title('3D Heatmap (scatter representation)')
@@ -280,17 +277,15 @@ if choice == "Upload Your Data":
                 ax.set_zlabel(z_axis)
 
             elif plot_type == "Grid Plot":
-                # Chọn chỉ các cột số để tính toán ma trận tương quan
                 numeric_data = data.select_dtypes(include=[np.number])
-        
-                # Kiểm tra nếu có ít nhất hai cột số
+
                 if numeric_data.shape[1] < 2:
-                     st.error("Not enough numeric data to compute the correlation matrix.")
+                    st.error("Not enough numeric data to compute the correlation matrix.")
                 else:
-                     correlation_matrix = numeric_data.corr()
-                     sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
-                     plt.title('Grid Plot of Correlations')
-                     plt.show()
+                    correlation_matrix = numeric_data.corr()
+                    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+                    plt.title('Grid Plot of Correlations')
+                    st.pyplot(plt)
 
             elif plot_type == "Contour Plot":
                 plt.tricontourf(data[x_axis], data[y_axis], data[z_axis], cmap='viridis')
