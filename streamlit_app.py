@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pandas.plotting import parallel_coordinates, andrews_curves
 from scipy.cluster import hierarchy
-import plotly.express as px
 
 # Custom CSS for styling
 st.markdown(
