@@ -1,9 +1,6 @@
 streamlit
+pandas
 seaborn
 matplotlib
-numpy
-pandas
 scipy
-math
-pandas.plotting
 matplotlib-ternary
