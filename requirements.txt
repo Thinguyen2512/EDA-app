@@ -6,3 +6,4 @@ pandas
 scipy
 math
 pandas.plotting
+matplotlib-ternary
