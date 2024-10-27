@@ -3,7 +3,10 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.interpolate import griddata  # Importing griddata
+from scipy.interpolate import griddata
+from pandas.plotting import parallel_coordinates
+from math import pi
+import matplotlib
 
 # Custom CSS for styling
 st.markdown(
@@ -71,6 +74,7 @@ if choice == "Upload Your Data":
             "Plot One Variable",
             "Plot Two Variables",
             "Plot Three Variables",
+            "Plot More Than Three Variables",
             "AI Analysis"
         ])
 
@@ -151,7 +155,7 @@ if choice == "Upload Your Data":
         elif analysis_option == "Plot Two Variables":
             st.subheader("Plot Two Variables")
             x_axis = st.selectbox('Select X variable:', data.columns)
-            y_axis = st.selectbox('Select Y variable:', data.columns)
+            y_axis = st.selectbox('Select Y variable:', data.columns, index=1)
             plot_type = st.selectbox("Select plot type:", [
                 "Scatter Plot",
                 "Box Plot",
@@ -190,14 +194,11 @@ if choice == "Upload Your Data":
                 plt.ylabel(f'Mean {y_axis}')
 
             elif plot_type == "Heat Map":
-                # Select only numeric columns for correlation
                 numeric_data = data[[x_axis, y_axis]].select_dtypes(include=[np.number])
 
-                # Check if there is enough numeric data
                 if numeric_data.shape[0] == 0:
                     st.error("Selected variables do not contain numeric data.")
                 else:
-                    # Compute correlation matrix
                     correlation_matrix = numeric_data.corr()
                     sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
                     plt.title('Heat Map of Correlation between Selected Variables')
@@ -232,17 +233,16 @@ if choice == "Upload Your Data":
                 "3D Scatter Plot",
                 "Surface Plot",
                 "Bubble Chart",
-                "3D Heatmap",
-                "Grid Plot",
+                "Ternary Plot",
                 "Contour Plot",
                 "Raster Plot",
                 "Tile Plot"
             ])
 
-            fig = plt.figure(figsize=(10, 6))
+            plt.figure(figsize=(10, 6))
             
             if plot_type == "3D Scatter Plot":
-                ax = fig.add_subplot(111, projection='3d')
+                ax = plt.axes(projection='3d')
                 ax.scatter(data[x_axis], data[y_axis], data[z_axis])
                 ax.set_title(f'3D Scatter Plot of {y_axis}, {x_axis}, {z_axis}')
                 ax.set_xlabel(x_axis)
@@ -250,61 +250,96 @@ if choice == "Upload Your Data":
                 ax.set_zlabel(z_axis)
 
             elif plot_type == "Surface Plot":
+                # Ensure you have enough points and valid data
                 x_unique = np.unique(data[x_axis])
                 y_unique = np.unique(data[y_axis])
                 X, Y = np.meshgrid(x_unique, y_unique)
 
+                # Use griddata to interpolate the Z values
                 Z = griddata((data[x_axis], data[y_axis]), data[z_axis], (X, Y), method='linear')
 
-                ax = fig.add_subplot(111, projection='3d')
-                ax.plot_surface(X, Y, Z, cmap='viridis')
-                ax.set_title(f'Surface Plot of {z_axis} vs {x_axis} and {y_axis}')
-                ax.set_xlabel(x_axis)
-                ax.set_ylabel(y_axis)
-                ax.set_zlabel(z_axis)
-
-            elif plot_type == "Bubble Chart":
-                plt.scatter(data[x_axis], data[y_axis], s=data[z_axis]*10, alpha=0.5)
-                plt.title(f'Bubble Chart of {y_axis} vs {x_axis} with size {z_axis}')
+                plt.contourf(X, Y, Z, levels=14, cmap='viridis')
+                plt.colorbar(label=z_axis)
+                plt.title(f'Surface Plot of {z_axis} by {x_axis} and {y_axis}')
                 plt.xlabel(x_axis)
                 plt.ylabel(y_axis)
 
-            elif plot_type == "3D Heatmap":
-                ax = fig.add_subplot(111, projection='3d')
-                ax.scatter(data[x_axis], data[y_axis], data[z_axis])
-                ax.set_title('3D Heatmap (scatter representation)')
-                ax.set_xlabel(x_axis)
-                ax.set_ylabel(y_axis)
-                ax.set_zlabel(z_axis)
+            elif plot_type == "Bubble Chart":
+                plt.scatter(data[x_axis], data[y_axis], s=data[z_axis]*10, alpha=0.5)
+                plt.title(f'Bubble Chart of {y_axis} vs {x_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel(y_axis)
 
-            elif plot_type == "Grid Plot":
-                numeric_data = data.select_dtypes(include=[np.number])
-
-                if numeric_data.shape[1] < 2:
-                    st.error("Not enough numeric data to compute the correlation matrix.")
+            elif plot_type == "Ternary Plot":
+                if data[[x_axis, y_axis, z_axis]].isnull().values.any():
+                    st.error("Data contains null values. Please clean your data before plotting.")
                 else:
-                    correlation_matrix = numeric_data.corr()
-                    sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
-                    plt.title('Grid Plot of Correlations')
-                    st.pyplot(plt)
+                    import ternary
+                    fig, tax = ternary.figure()
+                    tax.scatter(data[[x_axis, y_axis, z_axis]].values, marker='o')
+                    tax.set_title('Ternary Plot')
+                    tax.right_axis_label(z_axis)
+                    tax.left_axis_label(y_axis)
+                    tax.bottom_axis_label(x_axis)
+                    tax.show()
 
             elif plot_type == "Contour Plot":
-                plt.tricontourf(data[x_axis], data[y_axis], data[z_axis], cmap='viridis')
-                plt.title(f'Contour Plot of {z_axis} vs {x_axis} and {y_axis}')
+                plt.tricontour(data[x_axis], data[y_axis], data[z_axis])
+                plt.title(f'Contour Plot of {z_axis} by {x_axis} and {y_axis}')
                 plt.xlabel(x_axis)
                 plt.ylabel(y_axis)
 
             elif plot_type == "Raster Plot":
-                plt.imshow(data.pivot_table(values=z_axis, index=y_axis, columns=x_axis), cmap='viridis', aspect='auto')
-                plt.title(f'Raster Plot of {z_axis} vs {x_axis} and {y_axis}')
-                plt.colorbar()
+                plt.imshow(data[[x_axis, y_axis, z_axis]], aspect='auto', cmap='viridis')
+                plt.title(f'Raster Plot of {z_axis} by {x_axis} and {y_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel(y_axis)
 
             elif plot_type == "Tile Plot":
-                plt.imshow(data.pivot_table(values=z_axis, index=y_axis, columns=x_axis), cmap='viridis', aspect='equal')
-                plt.title(f'Tile Plot of {z_axis} vs {x_axis} and {y_axis}')
-                plt.colorbar()
+                sns.histplot(data[[x_axis, y_axis]], bins=30, pmax=0.8, cmap='coolwarm', cbar=True)
+                plt.title(f'Tile Plot of {y_axis} by {x_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel(y_axis)
 
-            st.pyplot(fig)
+            st.pyplot(plt)
+
+        # Plot More Than Three Variables
+        elif analysis_option == "Plot More Than Three Variables":
+            st.subheader("Plot More Than Three Variables")
+            feature_columns = st.multiselect("Select features to plot:", data.columns)
+            if len(feature_columns) > 1:
+                plot_type = st.selectbox("Select plot type:", [
+                    "Parallel Coordinates Plot",
+                    "Radar Chart"
+                ])
+
+                plt.figure(figsize=(10, 6))
+
+                if plot_type == "Parallel Coordinates Plot":
+                    parallel_coordinates(data[feature_columns], class_column=feature_columns[0])
+                    plt.title('Parallel Coordinates Plot')
+                    plt.xlabel('Features')
+                    plt.ylabel('Values')
+
+                elif plot_type == "Radar Chart":
+                    # Prepare data for Radar Chart
+                    num_vars = len(feature_columns)
+
+                    # Compute angle for each axis
+                    angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
+
+                    # The plot is a circle, so we need to "complete the loop"
+                    values = data[feature_columns].mean().tolist()
+                    values += values[:1]
+                    angles += angles[:1]
+
+                    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
+                    ax.fill(angles, values, color='green', alpha=0.25)
+                    ax.plot(angles, values, color='green', linewidth=2)
+                    ax.set_yticklabels([])
+                    plt.title('Radar Chart')
+
+                st.pyplot(plt)
 
         # AI Analysis
         elif analysis_option == "AI Analysis":
