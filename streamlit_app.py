@@ -315,8 +315,7 @@ if choice == "Upload Your Data":
                     "Heatmap with Dendrograms",
                     "Scatterplot Matrix",
                     "Andrews Curves",
-                    "Glyph Plots",
-                    "Interactive Plot"
+                    "Glyph Plots"
                 ])
 
                 if plot_type == "Parallel Coordinates Plot":
@@ -354,11 +353,6 @@ if choice == "Upload Your Data":
                     plt.xlabel(feature_columns[0])
                     plt.ylabel(feature_columns[1])
                     st.pyplot(plt)
-
-                elif plot_type == "Interactive Plot":
-                    st.subheader("Interactive Scatter Plot")
-                    fig = px.scatter(data, x=feature_columns[0], y=feature_columns[1], color=feature_columns[2] if len(feature_columns) > 2 else None)
-                    st.plotly_chart(fig)
 
         # AI Analysis
         elif analysis_option == "AI Analysis":
