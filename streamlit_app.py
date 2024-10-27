@@ -304,42 +304,23 @@ if choice == "Upload Your Data":
             st.pyplot(plt)
 
         # Plot More Than Three Variables
-        elif analysis_option == "Plot More Than Three Variables":
-            st.subheader("Plot More Than Three Variables")
-            feature_columns = st.multiselect("Select features to plot:", data.columns)
-            if len(feature_columns) > 1:
-                plot_type = st.selectbox("Select plot type:", [
-                    "Parallel Coordinates Plot",
-                    "Radar Chart"
-                ])
+elif analysis_option == "Plot More Than Three Variables":
+    st.subheader("Plot More Than Three Variables")
+    feature_columns = st.multiselect("Select features to plot:", data.columns)
+    if len(feature_columns) > 1:
+        plot_type = st.selectbox("Select plot type:", [
+            "Parallel Coordinates Plot"
+        ])
 
-                plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(10, 6))
 
-                if plot_type == "Parallel Coordinates Plot":
-                    parallel_coordinates(data[feature_columns], class_column=feature_columns[0])
-                    plt.title('Parallel Coordinates Plot')
-                    plt.xlabel('Features')
-                    plt.ylabel('Values')
+        if plot_type == "Parallel Coordinates Plot":
+            parallel_coordinates(data[feature_columns], class_column=feature_columns[0])
+            plt.title('Parallel Coordinates Plot')
+            plt.xlabel('Features')
+            plt.ylabel('Values')
 
-                elif plot_type == "Radar Chart":
-                    # Prepare data for Radar Chart
-                    num_vars = len(feature_columns)
-
-                    # Compute angle for each axis
-                    angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
-
-                    # The plot is a circle, so we need to "complete the loop"
-                    values = data[feature_columns].mean().tolist()
-                    values += values[:1]
-                    angles += angles[:1]
-
-                    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-                    ax.fill(angles, values, color='green', alpha=0.25)
-                    ax.plot(angles, values, color='green', linewidth=2)
-                    ax.set_yticklabels([])
-                    plt.title('Radar Chart')
-
-                st.pyplot(plt)
+        st.pyplot(plt)
 
         # AI Analysis
         elif analysis_option == "AI Analysis":
