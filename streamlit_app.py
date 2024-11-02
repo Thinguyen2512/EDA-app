@@ -253,54 +253,52 @@ if choice == "Upload Your Data":
         # Plot Three Variables
         elif analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
-            st.write("Select three variables to visualize their relationships.")
-            var1 = st.selectbox("Select first variable:", data.columns)
-            var2 = st.selectbox("Select second variable:", data.columns, index=1)
-            var3 = st.selectbox("Select third variable:", data.columns, index=2)
+            st.write("Select three variables to visualize. You can select numerical or categorical variables.")
 
-            if data[var1].dtype in [np.number, 'float64', 'int64'] and data[var2].dtype in [np.number, 'float64', 'int64'] and data[var3].dtype in [np.number, 'float64', 'int64']:
-                st.write("### Numerical vs Numerical vs Numerical Options")
-                plot_type = st.selectbox("Select plot type:", [
-                    "3D Scatter Plot",
-                    "Heatmap"
-                ])
+            num_or_cat = st.selectbox("Choose variable type:", ["Numerical", "Categorical"])
+            if num_or_cat == "Numerical":
+                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
+                selected_vars = st.multiselect("Select three numerical variables:", numerical_features, max_selections=3)
 
-                if plot_type == "3D Scatter Plot":
-                    fig = plt.figure(figsize=(10, 6))
-                    ax = fig.add_subplot(111, projection='3d')
-                    ax.scatter(data[var1], data[var2], data[var3])
-                    ax.set_xlabel(var1)
-                    ax.set_ylabel(var2)
-                    ax.set_zlabel(var3)
-                    plt.title(f'3D Scatter Plot of {var1}, {var2}, {var3}')
+                if len(selected_vars) == 3:
+                    plot_type = st.selectbox("Select plot type:", [
+                        "3D Scatter Plot",
+                        "Parallel Coordinates Plot"
+                    ])
 
-                elif plot_type == "Heatmap":
-                    pivot_table = data.pivot_table(index=var1, columns=var2, values=var3, aggfunc='mean')
-                    sns.heatmap(pivot_table, cmap='viridis', annot=True)
-                    plt.title(f'Heatmap of {var3} by {var1} and {var2}')
+                    if plot_type == "3D Scatter Plot":
+                        fig = plt.figure(figsize=(10, 6))
+                        ax = fig.add_subplot(111, projection='3d')
+                        ax.scatter(data[selected_vars[0]], data[selected_vars[1]], data[selected_vars[2]])
+                        ax.set_xlabel(selected_vars[0])
+                        ax.set_ylabel(selected_vars[1])
+                        ax.set_zlabel(selected_vars[2])
+                        plt.title('3D Scatter Plot of Selected Numerical Variables')
 
-                st.pyplot(plt)
+                    elif plot_type == "Parallel Coordinates Plot":
+                        plt.figure(figsize=(10, 6))
+                        parallel_coordinates(data[selected_vars], class_column=selected_vars[0])
+                        plt.title('Parallel Coordinates Plot')
 
-            elif data[var1].dtype in ['object'] and data[var2].dtype in [np.number, 'float64', 'int64'] and data[var3].dtype in [np.number, 'float64', 'int64']:
-                st.write("### Categorical vs Numerical vs Numerical Options")
-                plot_type = st.selectbox("Select plot type:", [
-                    "Box Plot",
-                    "Violin Plot"
-                ])
+                    st.pyplot(plt)
 
-                plt.figure(figsize=(10, 6))
+            elif num_or_cat == "Categorical":
+                categorical_features = data.select_dtypes(include=['object']).columns.tolist()
+                selected_vars = st.multiselect("Select three categorical variables:", categorical_features, max_selections=3)
 
-                if plot_type == "Box Plot":
-                    sns.boxplot(x=var1, y=var2, data=data)
-                    plt.title(f'Box Plot of {var2} by {var1}')
-                    plt.xlabel(var1)
-                    plt.ylabel(var2)
+                if len(selected_vars) == 3:
+                    st.write("### Categorical vs Categorical Options")
+                    plot_type = st.selectbox("Select plot type:", [
+                        "Grouped Bar Chart"
+                    ])
 
-                elif plot_type == "Violin Plot":
-                    sns.violinplot(x=var1, y=var2, data=data)
-                    plt.title(f'Violin Plot of {var2} by {var1}')
+                    plt.figure(figsize=(10, 6))
+                    data.groupby(selected_vars).size().unstack().plot(kind='bar', stacked=True)
+                    plt.title('Grouped Bar Chart of Selected Categorical Variables')
+                    plt.xlabel('Categories')
+                    plt.ylabel('Count')
 
-                st.pyplot(plt)
+                    st.pyplot(plt)
 
         # Plot More Than Three Variables
         elif analysis_option == "Plot More Than Three Variables":
@@ -309,31 +307,39 @@ if choice == "Upload Your Data":
             feature_columns = st.multiselect("Select features to plot:", data.columns)
 
             if len(feature_columns) > 1:
-                plot_type = st.selectbox("Select plot type:", [
-                    "Parallel Coordinates Plot",
-                    "Scatterplot Matrix",
-                    "Andrews Curves"
-                ])
+                # Separate numerical and categorical features
+                numerical_features = [col for col in feature_columns if data[col].dtype in [np.number, 'float64', 'int64']]
+                categorical_features = [col for col in feature_columns if data[col].dtype in ['object']]
 
-                if plot_type == "Parallel Coordinates Plot":
-                    plt.figure(figsize=(10, 6))
-                    parallel_coordinates(data[feature_columns], class_column=feature_columns[0])
-                    plt.title('Parallel Coordinates Plot')
-                    plt.xlabel('Features')
-                    plt.ylabel('Values')
-                    st.pyplot(plt)
+                if numerical_features and categorical_features:
+                    plot_type = st.selectbox("Select plot type:", [
+                        "Parallel Coordinates Plot",
+                        "Scatterplot Matrix",
+                        "Andrews Curves"
+                    ])
 
-                elif plot_type == "Scatterplot Matrix":
-                    plt.figure(figsize=(10, 10))
-                    sns.pairplot(data[feature_columns])
-                    plt.title('Scatterplot Matrix')
-                    st.pyplot(plt)
+                    if plot_type == "Parallel Coordinates Plot":
+                        plt.figure(figsize=(10, 6))
+                        parallel_coordinates(data[feature_columns], class_column=categorical_features[0])
+                        plt.title('Parallel Coordinates Plot')
+                        plt.xlabel('Features')
+                        plt.ylabel('Values')
+                        st.pyplot(plt)
 
-                elif plot_type == "Andrews Curves":
-                    plt.figure(figsize=(10, 6))
-                    andrews_curves(data[feature_columns], class_column=feature_columns[0])
-                    plt.title('Andrews Curves Plot')
-                    st.pyplot(plt)
+                    elif plot_type == "Scatterplot Matrix":
+                        plt.figure(figsize=(10, 10))
+                        sns.pairplot(data[feature_columns])
+                        plt.title('Scatterplot Matrix')
+                        st.pyplot(plt)
+
+                    elif plot_type == "Andrews Curves":
+                        plt.figure(figsize=(10, 6))
+                        andrews_curves(data[feature_columns], class_column=categorical_features[0])
+                        plt.title('Andrews Curves Plot')
+                        st.pyplot(plt)
+
+                else:
+                    st.error("You must select at least one numerical and one categorical variable.")
 
         # AI Analysis
         elif analysis_option == "AI Analysis":
