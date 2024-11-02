@@ -87,6 +87,7 @@ if choice == "Upload Your Data":
             feature = st.selectbox("Select variable to plot:", data.columns)
 
             if data[feature].dtype in [np.number, 'float64', 'int64']:
+                st.write("### Numerical Variable Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Line Chart",
                     "Histogram",
@@ -138,6 +139,7 @@ if choice == "Upload Your Data":
                     plt.ylabel('Frequency')
 
             else:
+                st.write("### Categorical Variable Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Bar Chart",
                     "Pie Chart"
@@ -160,11 +162,12 @@ if choice == "Upload Your Data":
         # Plot Two Variables
         elif analysis_option == "Plot Two Variables":
             st.subheader("Plot Two Variables")
-            st.write("Select two variables to visualize their relationship. Choose numerical and/or categorical variables.")
+            st.write("Select two variables to visualize their relationship.")
             x_axis = st.selectbox("Select X variable:", data.columns)
             y_axis = st.selectbox("Select Y variable:", data.columns, index=1)
 
             if data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in [np.number, 'float64', 'int64']:
+                st.write("### Numerical vs Numerical Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Scatter Plot",
                     "Box Plot",
@@ -212,7 +215,8 @@ if choice == "Upload Your Data":
 
                 st.pyplot(plt)
 
-            else:
+            elif data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in ['object']:
+                st.write("### Numerical vs Categorical Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Box Plot",
                     "Violin Plot"
@@ -232,53 +236,76 @@ if choice == "Upload Your Data":
 
                 st.pyplot(plt)
 
+            elif data[x_axis].dtype in ['object'] and data[y_axis].dtype in ['object']:
+                st.write("### Categorical vs Categorical Options")
+                plot_type = st.selectbox("Select plot type:", [
+                    "Grouped Bar Chart"
+                ])
+
+                plt.figure(figsize=(10, 6))
+                data.groupby([x_axis, y_axis]).size().unstack().plot(kind='bar', stacked=True)
+                plt.title(f'Grouped Bar Chart of {y_axis} by {x_axis}')
+                plt.xlabel(x_axis)
+                plt.ylabel('Count')
+
+                st.pyplot(plt)
+
         # Plot Three Variables
         elif analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
-            st.write("Select two variables (one numerical and one categorical) to visualize their relationship.")
-            num_variable = st.selectbox("Select numerical variable:", data.select_dtypes(include=np.number).columns)
-            cat_variable = st.selectbox("Select categorical variable:", data.select_dtypes(include='object').columns)
+            st.write("Select three variables to visualize their relationships.")
+            var1 = st.selectbox("Select first variable:", data.columns)
+            var2 = st.selectbox("Select second variable:", data.columns, index=1)
+            var3 = st.selectbox("Select third variable:", data.columns, index=2)
 
-            plot_type = st.selectbox("Select plot type:", [
-                "3D Scatter Plot",
-                "Bubble Chart",
-                "Violin Chart",
-                "Heatmap"
-            ])
+            if data[var1].dtype in [np.number, 'float64', 'int64'] and data[var2].dtype in [np.number, 'float64', 'int64'] and data[var3].dtype in [np.number, 'float64', 'int64']:
+                st.write("### Numerical vs Numerical vs Numerical Options")
+                plot_type = st.selectbox("Select plot type:", [
+                    "3D Scatter Plot",
+                    "Heatmap"
+                ])
 
-            plt.figure(figsize=(10, 6))
-            
-            if plot_type == "3D Scatter Plot":
-                ax = plt.axes(projection='3d')
-                ax.scatter(data[num_variable], data[cat_variable], c='r')
-                ax.set_title(f'3D Scatter Plot of {cat_variable} vs {num_variable}')
-                ax.set_xlabel(num_variable)
-                ax.set_ylabel(cat_variable)
+                if plot_type == "3D Scatter Plot":
+                    fig = plt.figure(figsize=(10, 6))
+                    ax = fig.add_subplot(111, projection='3d')
+                    ax.scatter(data[var1], data[var2], data[var3])
+                    ax.set_xlabel(var1)
+                    ax.set_ylabel(var2)
+                    ax.set_zlabel(var3)
+                    plt.title(f'3D Scatter Plot of {var1}, {var2}, {var3}')
 
-            elif plot_type == "Bubble Chart":
-                plt.scatter(data[num_variable], data[cat_variable], s=data[num_variable]*10, alpha=0.5)
-                plt.title(f'Bubble Chart of {cat_variable} vs {num_variable}')
-                plt.xlabel(num_variable)
-                plt.ylabel(cat_variable)
-
-            elif plot_type == "Violin Chart":
-                sns.violinplot(x=cat_variable, y=num_variable, data=data)
-                plt.title(f'Violin Chart of {num_variable} by {cat_variable}')
-
-            elif plot_type == "Heatmap":
-                if data[num_variable].dtype in [np.number, 'float64', 'int64']:
-                    pivot_table = data.pivot_table(index=cat_variable, values=num_variable, aggfunc='mean')
+                elif plot_type == "Heatmap":
+                    pivot_table = data.pivot_table(index=var1, columns=var2, values=var3, aggfunc='mean')
                     sns.heatmap(pivot_table, cmap='viridis', annot=True)
-                    plt.title(f'Heatmap of {num_variable} by {cat_variable}')
-                else:
-                    st.write("Heatmap can only be created with numerical values.")
+                    plt.title(f'Heatmap of {var3} by {var1} and {var2}')
 
-            st.pyplot(plt)
+                st.pyplot(plt)
+
+            elif data[var1].dtype in ['object'] and data[var2].dtype in [np.number, 'float64', 'int64'] and data[var3].dtype in [np.number, 'float64', 'int64']:
+                st.write("### Categorical vs Numerical vs Numerical Options")
+                plot_type = st.selectbox("Select plot type:", [
+                    "Box Plot",
+                    "Violin Plot"
+                ])
+
+                plt.figure(figsize=(10, 6))
+
+                if plot_type == "Box Plot":
+                    sns.boxplot(x=var1, y=var2, data=data)
+                    plt.title(f'Box Plot of {var2} by {var1}')
+                    plt.xlabel(var1)
+                    plt.ylabel(var2)
+
+                elif plot_type == "Violin Plot":
+                    sns.violinplot(x=var1, y=var2, data=data)
+                    plt.title(f'Violin Plot of {var2} by {var1}')
+
+                st.pyplot(plt)
 
         # Plot More Than Three Variables
         elif analysis_option == "Plot More Than Three Variables":
             st.subheader("Plot More Than Three Variables")
-            st.write("Select features to visualize. Choose numerical or categorical variables.")
+            st.write("Select features to visualize. You must select at least one numerical and one categorical variable.")
             feature_columns = st.multiselect("Select features to plot:", data.columns)
 
             if len(feature_columns) > 1:
@@ -328,6 +355,7 @@ elif choice == "About Us":
 elif choice == "Contact Us":
     st.subheader("Contact Us")
     st.write("For inquiries, please email us at contact@example.com.")
+
 
 
 
