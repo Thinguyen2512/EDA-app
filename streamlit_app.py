@@ -3,7 +3,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-from pandas.plotting import parallel_coordinates, andrews_curves
+from pandas.plotting import parallel_coordinates
 
 # Custom CSS for styling
 st.markdown(
@@ -312,8 +312,8 @@ if choice == "Upload Your Data":
                 numerical_features = [col for col in feature_columns if data[col].dtype in [np.number, 'float64', 'int64']]
                 categorical_features = [col for col in feature_columns if data[col].dtype in ['object']]
 
+                # Plotting with Numerical Variables
                 if numerical_features:
-                    # Plotting with Numerical Variables
                     st.write("### Plotting with Numerical Variables")
                     plot_type = st.selectbox("Select plot type for numerical variables:", [
                         "Scatter Plot Matrix",
@@ -347,8 +347,8 @@ if choice == "Upload Your Data":
                         else:
                             st.error("You need to select at least three numerical variables for 3D scatter plot.")
 
+                # Plotting with Categorical Variables
                 if categorical_features:
-                    # Plotting with Categorical Variables
                     st.write("### Plotting with Categorical Variables")
                     plot_type = st.selectbox("Select plot type for categorical variables:", [
                         "Grouped Bar Chart",
@@ -407,7 +407,6 @@ if choice == "Upload Your Data":
                         plt.xlabel(selected_num_var1)
                         plt.ylabel(selected_num_var2)
                         st.pyplot(plt)
-                
             else:
                 st.error("Please select more than one feature to plot.")
 
@@ -431,6 +430,7 @@ elif choice == "About Us":
 elif choice == "Contact Us":
     st.subheader("Contact Us")
     st.write("For inquiries, please email us at contact@example.com.")
+
 
 
 
