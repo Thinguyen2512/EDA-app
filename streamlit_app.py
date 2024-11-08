@@ -4,6 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from pandas.plotting import parallel_coordinates
+from statsmodels.graphics.mosaicplot import mosaic
 
 # Custom CSS for styling
 st.markdown(
@@ -193,7 +194,6 @@ if choice == "Upload Your Data":
                     plt.ylabel('Count')
 
                 elif plot_type == "Mosaic Plot":
-                    from statsmodels.graphics.mosaicplot import mosaic
                     mosaic(data, [x_axis, y_axis])
                     plt.title(f'Mosaic Plot of {x_axis} and {y_axis}')
                 st.pyplot(plt)
@@ -271,6 +271,7 @@ elif choice == "About Us":
 elif choice == "Contact Us":
     st.subheader("Contact Us")
     st.write("For inquiries, please email us at contact@example.com.")
+
 
 
 
