@@ -43,7 +43,7 @@ def generate_analysis(feature, data):
     return " ".join(description)
 
 # App title
-st.title("EDA TOOL")
+st.title("Exploratory Data Analysis (EDA) Tool")
 
 # Navigation menu
 menu = ["About Us", "Upload Your Data", "Contact Us"]
@@ -86,7 +86,7 @@ if choice == "Upload Your Data":
             feature = st.selectbox("Select variable to plot:", data.columns)
 
             if data[feature].dtype in [np.number, 'float64', 'int64']:
-                st.write("### Numerical Variable Options")
+                st.write("### Continuous Variables Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Histogram",
                     "Box Plot"
@@ -106,7 +106,7 @@ if choice == "Upload Your Data":
                 st.pyplot(plt)
 
             else:
-                st.write("### Categorical Variable Options")
+                st.write("### Categorical Variables Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Bar Chart",
                     "Pie Chart"
@@ -133,8 +133,9 @@ if choice == "Upload Your Data":
             x_axis = st.selectbox("Select X variable:", data.columns)
             y_axis = st.selectbox("Select Y variable:", data.columns, index=1)
 
+            # Checking types of the selected variables
             if data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in [np.number, 'float64', 'int64']:
-                st.write("### 2 Numerical Variables Options")
+                st.write("### Two Continuous Variables Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Scatter Plot",
                     "Line Graph",
@@ -162,7 +163,7 @@ if choice == "Upload Your Data":
                     plt.ylabel(y_axis)
 
             elif data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in ['object']:
-                st.write("### 1 Numerical + 1 Categorical Variables Options")
+                st.write("### One Continuous + One Categorical Variable Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Bar Chart"
                 ])
@@ -178,7 +179,7 @@ if choice == "Upload Your Data":
                 st.pyplot(plt)
 
             elif data[x_axis].dtype in ['object'] and data[y_axis].dtype in ['object']:
-                st.write("### 2 Categorical Variables Options")
+                st.write("### Two Categorical Variables Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Grouped Bar Chart",
                     "Mosaic Plot"
@@ -200,12 +201,12 @@ if choice == "Upload Your Data":
         # Plot Three Variables
         elif analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
-            st.write("Select three variables to visualize. You can select numerical or categorical variables.")
+            st.write("Select three variables to visualize. You can select continuous or categorical variables.")
 
-            num_or_cat = st.selectbox("Choose variable type:", ["Numerical", "Categorical"])
-            if num_or_cat == "Numerical":
-                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
-                selected_vars = st.multiselect("Select three numerical variables:", numerical_features, max_selections=3)
+            variable_type = st.selectbox("Choose variable type:", ["Continuous Variables", "Categorical Variables"])
+            if variable_type == "Continuous Variables":
+                continuous_features = data.select_dtypes(include=[np.number]).columns.tolist()
+                selected_vars = st.multiselect("Select three continuous variables:", continuous_features, max_selections=3)
 
                 if len(selected_vars) == 3:
                     plot_type = st.selectbox("Select plot type:", [
@@ -221,26 +222,26 @@ if choice == "Upload Your Data":
                         ax.set_xlabel(selected_vars[0])
                         ax.set_ylabel(selected_vars[1])
                         ax.set_zlabel(selected_vars[2])
-                        plt.title('3D Scatter Plot of Selected Numerical Variables')
+                        plt.title('3D Scatter Plot of Selected Continuous Variables')
 
                     elif plot_type == "Contour Plot":
                         X, Y = np.meshgrid(data[selected_vars[0]], data[selected_vars[1]])
                         Z = data[selected_vars[2]]
                         plt.contour(X, Y, Z)
-                        plt.title('Contour Plot of Selected Numerical Variables')
+                        plt.title('Contour Plot of Selected Continuous Variables')
 
                     elif plot_type == "Bubble Chart":
                         plt.scatter(data[selected_vars[0]], data[selected_vars[1]], s=data[selected_vars[2]]*10, alpha=0.5)
-                        plt.title('Bubble Chart of Selected Numerical Variables')
+                        plt.title('Bubble Chart of Selected Continuous Variables')
 
                     st.pyplot(plt)
 
-            elif num_or_cat == "Categorical":
+            elif variable_type == "Categorical Variables":
                 categorical_features = data.select_dtypes(include=['object']).columns.tolist()
                 selected_vars = st.multiselect("Select three categorical variables:", categorical_features, max_selections=3)
 
                 if len(selected_vars) == 3:
-                    st.write("### 3 Categorical Variables Options")
+                    st.write("### Three Categorical Variables Options")
                     plot_type = st.selectbox("Select plot type:", [
                         "Grid Plot"
                     ])
@@ -270,6 +271,7 @@ elif choice == "About Us":
 elif choice == "Contact Us":
     st.subheader("Contact Us")
     st.write("For inquiries, please email us at contact@example.com.")
+
 
 
 
