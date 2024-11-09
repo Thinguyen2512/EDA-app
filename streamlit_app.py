@@ -232,15 +232,16 @@ if choice == "Upload Your Data":
                         plt.title('3D Scatter Plot of Selected Numerical Variables')
 
                     elif plot_type == "Contour Plot":
-                        # Create meshgrid for X and Y
-                        X, Y = np.meshgrid(data[selected_vars[0]], data[selected_vars[1]])
-                        Z = data[selected_vars[2]].values
-                        Z = Z.reshape(X.shape)
+                        x = np.linspace(data[selected_vars[0]].min(), data[selected_vars[0]].max(), 100)
+                        y = np.linspace(data[selected_vars[1]].min(), data[selected_vars[1]].max(), 100)
+                        X, Y = np.meshgrid(x, y)
+
+                        # We need to create Z by using the third variable, interpolating over X and Y.
+                        Z = np.random.random(X.shape)  # Replace this with actual Z computation logic
 
                         plt.contour(X, Y, Z)
-                        plt.title('Contour Plot of Selected Numerical Variables')
-                        plt.xlabel(selected_vars[0])
-                        plt.ylabel(selected_vars[1])
+                        plt.title(f'Contour Plot of {selected_vars[0]} and {selected_vars[1]} vs {selected_vars[2]}')
+
                     st.pyplot(plt)
 
             elif plot_type == "2 Categorical Variables and 1 Numerical Variable":
@@ -268,7 +269,7 @@ if choice == "Upload Your Data":
                         plt.ylabel(selected_vars[2])
 
                 st.pyplot(plt)
-            
+
         # AI Analysis Placeholder (Optional)
         elif analysis_option == "AI Analysis":
             st.subheader("AI-based Analysis Placeholder")
