@@ -242,6 +242,14 @@ if choice == "Upload Your Data":
                         plt.contour(X, Y, Z)
                         plt.title(f'Contour Plot of {selected_vars[0]} and {selected_vars[1]} vs {selected_vars[2]}')
 
+                    elif plot_type == "Bubble Chart":
+                        plt.figure(figsize=(10, 6))
+                        plt.scatter(data[selected_vars[0]], data[selected_vars[1]], 
+                                    s=data[selected_vars[2]] * 10, alpha=0.5)  # Size of bubble proportional to third variable
+                        plt.title(f'Bubble Chart of {selected_vars[0]} vs {selected_vars[1]} by {selected_vars[2]}')
+                        plt.xlabel(selected_vars[0])
+                        plt.ylabel(selected_vars[1])
+
                     st.pyplot(plt)
 
             elif plot_type == "2 Categorical Variables and 1 Numerical Variable":
@@ -274,6 +282,7 @@ if choice == "Upload Your Data":
         elif analysis_option == "AI Analysis":
             st.subheader("AI-based Analysis Placeholder")
             st.write("AI analysis options will be available soon.")
+
 
 
 
