@@ -50,6 +50,14 @@ st.title("Exploratory Data Analysis (EDA) Tool")
 menu = ["About Us", "Upload Your Data", "Contact Us"]
 choice = st.sidebar.selectbox("Select feature", menu)
 
+# About Us section
+elif choice == "About Us":
+    st.subheader("About Us")
+    st.write("""
+        This EDA tool helps you visualize and analyze your data easily.
+        It provides various statistical and graphical analyses to enhance your understanding of the data.
+    """)
+
 # Upload Data section
 if choice == "Upload Your Data":
     st.subheader("Upload Data File")
@@ -200,7 +208,7 @@ if choice == "Upload Your Data":
                 st.pyplot(plt)
 
         # Plot Three Variables
-        elif analysis_option == "Plot Three Variables":
+        if analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
             st.write("Select three variables to visualize. Choose among the following options:")
 
@@ -212,17 +220,18 @@ if choice == "Upload Your Data":
 
             if plot_type == "3 Numerical Variables":
                 numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
+
                 selected_vars = st.multiselect("Select three numerical variables:", numerical_features, max_selections=3)
 
                 if len(selected_vars) == 3:
-                    st.write("### Options for 3 Numerical Variables")
-                    plot_type = st.selectbox("Select plot type:", [
+                    st.write("### Plot for 3 Numerical Variables")
+                    plot_choice = st.selectbox("Select plot type:", [
                         "3D Scatter Plot",
                         "Contour Plot",
                         "Bubble Chart"
                     ])
 
-                    if plot_type == "3D Scatter Plot":
+                    if plot_choice == "3D Scatter Plot":
                         fig = plt.figure(figsize=(10, 6))
                         ax = fig.add_subplot(111, projection='3d')
                         ax.scatter(data[selected_vars[0]], data[selected_vars[1]], data[selected_vars[2]])
@@ -230,60 +239,110 @@ if choice == "Upload Your Data":
                         ax.set_ylabel(selected_vars[1])
                         ax.set_zlabel(selected_vars[2])
                         plt.title('3D Scatter Plot of Selected Numerical Variables')
+                        st.pyplot(plt)
 
-                    elif plot_type == "Contour Plot":
-                        x = np.linspace(data[selected_vars[0]].min(), data[selected_vars[0]].max(), 100)
-                        y = np.linspace(data[selected_vars[1]].min(), data[selected_vars[1]].max(), 100)
-                        X, Y = np.meshgrid(x, y)
-
-                        # We need to create Z by using the third variable, interpolating over X and Y.
-                        Z = np.random.random(X.shape)  # Replace this with actual Z computation logic
-
-                        plt.contour(X, Y, Z)
-                        plt.title(f'Contour Plot of {selected_vars[0]} and {selected_vars[1]} vs {selected_vars[2]}')
-
-                    elif plot_type == "Bubble Chart":
-                        plt.figure(figsize=(10, 6))
-                        plt.scatter(data[selected_vars[0]], data[selected_vars[1]], 
-                                    s=data[selected_vars[2]] * 10, alpha=0.5)  # Size of bubble proportional to third variable
-                        plt.title(f'Bubble Chart of {selected_vars[0]} vs {selected_vars[1]} by {selected_vars[2]}')
+                    elif plot_choice == "Contour Plot":
+                        fig = plt.figure(figsize=(10, 6))
+                        ax = fig.add_subplot(111)
+                        X, Y = np.meshgrid(data[selected_vars[0]], data[selected_vars[1]])
+                        Z = data[selected_vars[2]].values
+                        Z = Z.reshape(X.shape)  # Reshape Z to fit the meshgrid
+                        ax.contour(X, Y, Z, levels=10, cmap='coolwarm')
+                        plt.title('Contour Plot of Selected Numerical Variables')
                         plt.xlabel(selected_vars[0])
                         plt.ylabel(selected_vars[1])
+                        st.pyplot(plt)
 
-                    st.pyplot(plt)
+                    elif plot_choice == "Bubble Chart":
+                        x, y, z = selected_vars
+                        fig, ax = plt.subplots(figsize=(10, 6))
+                        # Bubble size: Use the z variable for bubble sizes
+                        ax.scatter(data[x], data[y], s=data[z] * 10, alpha=0.5, c='blue', edgecolors="w", linewidth=0.5)
+                        ax.set_xlabel(x)
+                        ax.set_ylabel(y)
+                        plt.title(f'Bubble Chart of {y} vs {x} with Bubble Size based on {z}')
+                        st.pyplot(plt)
 
             elif plot_type == "2 Categorical Variables and 1 Numerical Variable":
                 categorical_features = data.select_dtypes(include=['object']).columns.tolist()
-                selected_vars = st.multiselect("Select two categorical and one numerical variable:", 
+                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
+
+                selected_vars = st.multiselect("Select two categorical variables and one numerical variable:", 
                                               categorical_features + numerical_features, max_selections=3)
 
                 if len(selected_vars) == 3:
                     st.write("### Plot for 2 Categorical Variables and 1 Numerical Variable")
-                    plot_type = st.selectbox("Select plot type:", [
-                        "Bar Chart",
-                        "Stacked Bar Chart"
+                    plot_choice = st.selectbox("Select plot type:", [
+                        "Grid Plot (Heatmap)"
                     ])
 
-                    if plot_type == "Bar Chart":
-                        sns.barplot(data=data, x=selected_vars[0], y=selected_vars[2], hue=selected_vars[1])
-                        plt.title(f'Bar Chart of {selected_vars[2]} by {selected_vars[0]} and {selected_vars[1]}')
-                        plt.xlabel(selected_vars[0])
-                        plt.ylabel(selected_vars[2])
+                    if plot_choice == "Grid Plot (Heatmap)":
+                        x, y, z = selected_vars
+                        # Create grid data using pivot_table
+                        grid_data = data.pivot_table(values=z, index=x, columns=y, aggfunc='sum')
+                        
+                        # Grid plot using heatmap
+                        plt.figure(figsize=(10, 6))
+                        sns.heatmap(grid_data, annot=True, cmap="coolwarm", fmt=".1f")
+                        plt.title(f'Grid Plot (Heatmap) of {z} by {x} and {y}')
+                        plt.xlabel(y)
+                        plt.ylabel(x)
+                        st.pyplot(plt)
 
-                    elif plot_type == "Stacked Bar Chart":
-                        data.groupby([selected_vars[0], selected_vars[1]])[selected_vars[2]].sum().unstack().plot(kind='bar', stacked=True)
-                        plt.title(f'Stacked Bar Chart of {selected_vars[2]} by {selected_vars[0]} and {selected_vars[1]}')
-                        plt.xlabel(selected_vars[0])
-                        plt.ylabel(selected_vars[2])
+            elif plot_type == "2 Numerical Variables and 1 Categorical Variable":
+                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
+                categorical_features = data.select_dtypes(include=['object']).columns.tolist()
 
-                st.pyplot(plt)
+                selected_vars = st.multiselect("Select two numerical variables and one categorical variable:", 
+                                              numerical_features + categorical_features, max_selections=3)
+
+                if len(selected_vars) == 3:
+                    st.write("### Plot for 2 Numerical Variables and 1 Categorical Variable")
+                    plot_choice = st.selectbox("Select plot type:", [
+                        "Area Chart",
+                        "Stacked Bar Chart",
+                        "Stacked Column Chart"
+                    ])
+
+                    if plot_choice == "Area Chart":
+                        x, y, z = selected_vars
+                        # Grouping by categorical variable and summing numerical ones
+                        area_data = data.groupby([z, x])[y].sum().unstack()
+                        area_data.plot(kind='area', figsize=(10, 6), stacked=True)
+                        plt.title(f'Area Chart of {y} vs {x} grouped by {z}')
+                        plt.xlabel(x)
+                        plt.ylabel(y)
+                        st.pyplot(plt)
+
+                    elif plot_choice == "Stacked Bar Chart":
+                        x, y, z = selected_vars
+                        # Stacked Bar Chart
+                        stacked_data = data.groupby([z, x])[y].sum().unstack()
+                        stacked_data.plot(kind='bar', stacked=True, figsize=(10, 6))
+                        plt.title(f'Stacked Bar Chart of {y} vs {x} grouped by {z}')
+                        plt.xlabel(x)
+                        plt.ylabel(y)
+                        st.pyplot(plt)
+
+                    elif plot_choice == "Stacked Column Chart":
+                        x, y, z = selected_vars
+                        # Stacked Column Chart
+                        stacked_data = data.groupby([z, x])[y].sum().unstack()
+                        stacked_data.plot(kind='bar', stacked=True, figsize=(10, 6), orientation='vertical')
+                        plt.title(f'Stacked Column Chart of {y} vs {x} grouped by {z}')
+                        plt.xlabel(x)
+                        plt.ylabel(y)
+                        st.pyplot(plt)
 
         # AI Analysis Placeholder (Optional)
         elif analysis_option == "AI Analysis":
             st.subheader("AI-based Analysis Placeholder")
             st.write("AI analysis options will be available soon.")
 
-
+# Contact Us section
+elif choice == "Contact Us":
+    st.subheader("Contact Us")
+    st.write("For inquiries, please email us at contact@example.com.")
 
 
 
