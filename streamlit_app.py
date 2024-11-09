@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pandas.plotting import parallel_coordinates
 from statsmodels.graphics.mosaicplot import mosaic
+from scipy.interpolate import griddata
+from mpl_toolkits.mplot3d import Axes3D
 
 # Custom CSS for styling
 st.markdown(
@@ -241,7 +243,7 @@ elif choice == "Upload Your Data":
                         plt.title('3D Scatter Plot of Selected Numerical Variables')
                         st.pyplot(plt)
 
-                   elif plot_choice == "Contour Plot":
+                    elif plot_choice == "Contour Plot":
                         fig = plt.figure(figsize=(10, 6))
                         ax = fig.add_subplot(111)
     
@@ -249,7 +251,6 @@ elif choice == "Upload Your Data":
                         x_var, y_var, z_var = selected_vars
     
                         # Chuyển dữ liệu thành dạng phù hợp với meshgrid
-                        # Đảm bảo các giá trị x, y, z đều được sắp xếp
                         x = data[x_var].dropna().values
                         y = data[y_var].dropna().values
                         z = data[z_var].dropna().values
@@ -258,7 +259,6 @@ elif choice == "Upload Your Data":
                         X, Y = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
 
                         # Dự đoán các giá trị Z cho lưới X, Y (sử dụng interpolation)
-                        from scipy.interpolate import griddata
                         Z = griddata((x, y), z, (X, Y), method='linear')
 
                         # Vẽ contour plot
@@ -273,11 +273,9 @@ elif choice == "Upload Your Data":
                         # Hiển thị biểu đồ
                         st.pyplot(fig)
 
-                        
                     elif plot_choice == "Bubble Chart":
                         x, y, z = selected_vars
                         fig, ax = plt.subplots(figsize=(10, 6))
-                        # Bubble size: Use the z variable for bubble sizes
                         ax.scatter(data[x], data[y], s=data[z] * 10, alpha=0.5, c='blue', edgecolors="w", linewidth=0.5)
                         ax.set_xlabel(x)
                         ax.set_ylabel(y)
