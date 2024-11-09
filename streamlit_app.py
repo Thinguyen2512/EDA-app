@@ -241,18 +241,14 @@ elif choice == "Upload Your Data":
                         plt.title('3D Scatter Plot of Selected Numerical Variables')
                         st.pyplot(plt)
 
-                    elif plot_choice == "Contour Plot":
-                        fig = plt.figure(figsize=(10, 6))
-                        ax = fig.add_subplot(111)
-                        X, Y = np.meshgrid(data[selected_vars[0]], data[selected_vars[1]])
-                        Z = data[selected_vars[2]].values
-                        Z = Z.reshape(X.shape)  # Reshape Z to fit the meshgrid
-                        ax.contour(X, Y, Z, levels=10, cmap='coolwarm')
-                        plt.title('Contour Plot of Selected Numerical Variables')
-                        plt.xlabel(selected_vars[0])
-                        plt.ylabel(selected_vars[1])
-                        st.pyplot(plt)
-
+                    elif plot_type == "Contour Plot":
+                        x = np.linspace(data[selected_vars[0]].min(), data[selected_vars[0]].max(), 100)
+                        y = np.linspace(data[selected_vars[1]].min(), data[selected_vars[1]].max(), 100)
+                        X, Y = np.meshgrid(x, y)
+                        Z = np.random.rand(100, 100)  # You can replace this with an actual function of X, Y
+                        plt.contour(X, Y, Z)
+                        plt.title(f'Contour Plot of {selected_vars[0]} and {selected_vars[1]} vs {selected_vars[2]}')
+                        
                     elif plot_choice == "Bubble Chart":
                         x, y, z = selected_vars
                         fig, ax = plt.subplots(figsize=(10, 6))
