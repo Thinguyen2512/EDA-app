@@ -87,7 +87,7 @@ if choice == "Upload Your Data":
             feature = st.selectbox("Select variable to plot:", data.columns)
 
             if data[feature].dtype in [np.number, 'float64', 'int64']:
-                st.write("### Continuous Variables Options")
+                st.write("### Numerical Variable Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Histogram",
                     "Box Plot"
@@ -107,7 +107,7 @@ if choice == "Upload Your Data":
                 st.pyplot(plt)
 
             else:
-                st.write("### Categorical Variables Options")
+                st.write("### Categorical Variable Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Bar Chart",
                     "Pie Chart"
@@ -134,9 +134,9 @@ if choice == "Upload Your Data":
             x_axis = st.selectbox("Select X variable:", data.columns)
             y_axis = st.selectbox("Select Y variable:", data.columns, index=1)
 
-            # Checking types of the selected variables
+            # Grouping options for two variables
             if data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in [np.number, 'float64', 'int64']:
-                st.write("### Two Continuous Variables Options")
+                st.write("### Two Numerical Variables Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Scatter Plot",
                     "Line Graph",
@@ -164,7 +164,7 @@ if choice == "Upload Your Data":
                     plt.ylabel(y_axis)
 
             elif data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in ['object']:
-                st.write("### One Continuous + One Categorical Variable Options")
+                st.write("### One Numerical and One Categorical Variable Options")
                 plot_type = st.selectbox("Select plot type:", [
                     "Bar Chart"
                 ])
@@ -187,6 +187,7 @@ if choice == "Upload Your Data":
                 ])
 
                 plt.figure(figsize=(10, 6))
+
                 if plot_type == "Grouped Bar Chart":
                     data.groupby([x_axis, y_axis]).size().unstack().plot(kind='bar', stacked=True)
                     plt.title(f'Grouped Bar Chart of {y_axis} by {x_axis}')
@@ -251,6 +252,30 @@ if choice == "Upload Your Data":
                     plt.title(f'Grouped Bar Chart of {", ".join(selected_vars)}')
                     st.pyplot(plt)
 
+            elif variable_type == "Numerical and Categorical Variables":
+                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
+                categorical_features = data.select_dtypes(include=['object']).columns.tolist()
+                selected_vars = st.multiselect("Select two numerical variables and one categorical variable:", numerical_features + categorical_features, max_selections=3)
+
+                if len(selected_vars) == 3:
+                    plot_type = st.selectbox("Select plot type:", [
+                        "Area Chart",
+                        "Stacked Bar Chart",
+                        "Stacked Column Chart"
+                    ])
+
+                    plt.figure(figsize=(10, 6))
+
+                    if plot_type == "Area Chart":
+                        data[selected_vars].plot(kind='area')
+                        plt.title(f'Area Chart of {", ".join(selected_vars)}')
+
+                    elif plot_type in ["Stacked Bar Chart", "Stacked Column Chart"]:
+                        data[selected_vars].value_counts().unstack().plot(kind='bar', stacked=True)
+                        plt.title(f'Stacked Chart of {", ".join(selected_vars)}')
+
+                    st.pyplot(plt)
+
         # AI Analysis
         elif analysis_option == "AI Analysis":
             st.subheader("AI Analysis")
@@ -271,6 +296,7 @@ elif choice == "About Us":
 elif choice == "Contact Us":
     st.subheader("Contact Us")
     st.write("For inquiries, please email us at contact@example.com.")
+
 
 
 
