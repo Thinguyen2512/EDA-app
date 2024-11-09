@@ -51,7 +51,7 @@ menu = ["About Us", "Upload Your Data", "Contact Us"]
 choice = st.sidebar.selectbox("Select feature", menu)
 
 # About Us section
-elif choice == "About Us":
+if choice == "About Us":
     st.subheader("About Us")
     st.write("""
         This EDA tool helps you visualize and analyze your data easily.
@@ -59,7 +59,7 @@ elif choice == "About Us":
     """)
 
 # Upload Data section
-if choice == "Upload Your Data":
+elif choice == "Upload Your Data":
     st.subheader("Upload Data File")
     uploaded_file = st.file_uploader("Choose a file to upload", type=["csv", "xlsx"])
 
@@ -208,7 +208,7 @@ if choice == "Upload Your Data":
                 st.pyplot(plt)
 
         # Plot Three Variables
-        if analysis_option == "Plot Three Variables":
+        elif analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
             st.write("Select three variables to visualize. Choose among the following options:")
 
