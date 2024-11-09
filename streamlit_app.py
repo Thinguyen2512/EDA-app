@@ -104,7 +104,6 @@ if choice == "Upload Your Data":
                 elif plot_type == "Box Plot":
                     sns.boxplot(y=data[feature])
                     plt.title(f'Boxplot of {feature}')
-                st.pyplot(plt)
 
             else:
                 st.write("### Categorical Variable Options")
@@ -162,7 +161,8 @@ if choice == "Upload Your Data":
                     plt.title(f'Area Chart of {y_axis} vs {x_axis}')
                     plt.xlabel(x_axis)
                     plt.ylabel(y_axis)
-
+                st.pyplot(plt)
+                
             elif data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in ['object']:
                 st.write("### One Numerical and One Categorical Variable Options")
                 plot_type = st.selectbox("Select plot type:", [
@@ -204,10 +204,10 @@ if choice == "Upload Your Data":
             st.subheader("Plot Three Variables")
             st.write("Select three variables to visualize. You can select continuous or categorical variables.")
 
-            variable_type = st.selectbox("Choose variable type:", ["Continuous Variables", "Categorical Variables"])
-            if variable_type == "Continuous Variables":
-                continuous_features = data.select_dtypes(include=[np.number]).columns.tolist()
-                selected_vars = st.multiselect("Select three continuous variables:", continuous_features, max_selections=3)
+            variable_type = st.selectbox("Choose variable type:", ["Numerical Variables", "Categorical Variables"])
+            if variable_type == "Numerical Variables":
+                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
+                selected_vars = st.multiselect("Select three numerical variables:", continuous_features, max_selections=3)
 
                 if len(selected_vars) == 3:
                     plot_type = st.selectbox("Select plot type:", [
@@ -223,17 +223,17 @@ if choice == "Upload Your Data":
                         ax.set_xlabel(selected_vars[0])
                         ax.set_ylabel(selected_vars[1])
                         ax.set_zlabel(selected_vars[2])
-                        plt.title('3D Scatter Plot of Selected Continuous Variables')
+                        plt.title('3D Scatter Plot of Selected Numerical Variables')
 
                     elif plot_type == "Contour Plot":
                         X, Y = np.meshgrid(data[selected_vars[0]], data[selected_vars[1]])
                         Z = data[selected_vars[2]]
                         plt.contour(X, Y, Z)
-                        plt.title('Contour Plot of Selected Continuous Variables')
+                        plt.title('Contour Plot of Selected Numerical Variables')
 
                     elif plot_type == "Bubble Chart":
                         plt.scatter(data[selected_vars[0]], data[selected_vars[1]], s=data[selected_vars[2]]*10, alpha=0.5)
-                        plt.title('Bubble Chart of Selected Continuous Variables')
+                        plt.title('Bubble Chart of Selected Numerical Variables')
 
                     st.pyplot(plt)
 
