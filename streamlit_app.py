@@ -203,22 +203,17 @@ if choice == "Upload Your Data":
         elif analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
             st.write("Select three variables to visualize. You can select continuous or categorical variables.")
-            
-            variable_type = st.selectbox("Choose variable type:", [
-                "Three Numerical Variables", 
-                "Two Categorical and One Numerical Variable", 
-                "Two Numerical and One Categorical Variable"
-            ])
-            
-            if variable_type == "Three Numerical Variables":
+
+            variable_type = st.selectbox("Choose variable type:", ["Numerical Variables", "Categorical Variables"])
+            if variable_type == "Numerical Variables":
                 numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
                 selected_vars = st.multiselect("Select three numerical variables:", numerical_features, max_selections=3)
 
                 if len(selected_vars) == 3:
                     plot_type = st.selectbox("Select plot type:", [
                         "3D Scatter Plot",
-                        "Contour Plot",
-                        "Bubble Chart"
+                        "Bubble Chart",
+                        "Contour Plot"
                     ])
 
                     if plot_type == "3D Scatter Plot":
@@ -230,50 +225,43 @@ if choice == "Upload Your Data":
                         ax.set_zlabel(selected_vars[2])
                         plt.title('3D Scatter Plot of Selected Numerical Variables')
 
-                    elif plot_type == "Contour Plot":
-                        X, Y = np.meshgrid(data[selected_vars[0]], data[selected_vars[1]])
-                        Z = data[selected_vars[2]]
-                        plt.contour(X, Y, Z)
-                        plt.title('Contour Plot of Selected Numerical Variables')
-
                     elif plot_type == "Bubble Chart":
                         plt.scatter(data[selected_vars[0]], data[selected_vars[1]], s=data[selected_vars[2]]*10, alpha=0.5)
                         plt.title('Bubble Chart of Selected Numerical Variables')
 
+                    elif plot_type == "Contour Plot":
+                        X, Y = np.meshgrid(data[selected_vars[0]], data[selected_vars[1]])
+                        Z = data[selected_vars[2]]
+
+                        # Reshape Z to match the meshgrid shape
+                        Z = Z.values.reshape(X.shape)
+
+                        plt.contour(X, Y, Z, levels=15)
+                        plt.title(f"Contour Plot of {selected_vars[2]} based on {selected_vars[0]} and {selected_vars[1]}")
+                        plt.xlabel(selected_vars[0])
+                        plt.ylabel(selected_vars[1])
+
                     st.pyplot(plt)
 
-            elif variable_type == "Two Categorical and One Numerical Variable":
+            elif variable_type == "Categorical Variables":
                 categorical_features = data.select_dtypes(include=['object']).columns.tolist()
-                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
-                selected_vars = st.multiselect("Select two categorical variables and one numerical variable:", 
-                                              categorical_features + numerical_features, max_selections=3)
+                selected_vars = st.multiselect("Select three categorical variables:", categorical_features, max_selections=3)
 
                 if len(selected_vars) == 3:
+                    st.write("### Three Categorical Variables Options")
                     plot_type = st.selectbox("Select plot type:", [
-                        "Box Plot",
-                        "Violin Plot",
-                        "Stacked Bar Chart"
+                        "Grid Plot"
                     ])
 
-                    if plot_type == "Box Plot":
-                        sns.boxplot(x=selected_vars[0], y=selected_vars[2], data=data, hue=selected_vars[1])
-                        plt.title(f"Box Plot of {selected_vars[2]} by {selected_vars[0]} and {selected_vars[1]}")
-
-                    elif plot_type == "Violin Plot":
-                        sns.violinplot(x=selected_vars[0], y=selected_vars[2], data=data, hue=selected_vars[1])
-                        plt.title(f"Violin Plot of {selected_vars[2]} by {selected_vars[0]} and {selected_vars[1]}")
-
-                    elif plot_type == "Stacked Bar Chart":
-                        data.groupby([selected_vars[0], selected_vars[1]]).size().unstack().plot(kind='bar', stacked=True)
-                        plt.title(f"Stacked Bar Chart of {selected_vars[0]} and {selected_vars[1]} by {selected_vars[2]}")
-
+                    plt.figure(figsize=(10, 6))
+                    data.groupby(selected_vars).size().unstack().plot(kind='bar', stacked=True)
+                    plt.title(f'Grouped Bar Chart of {", ".join(selected_vars)}')
                     st.pyplot(plt)
 
-            elif variable_type == "Two Numerical and One Categorical Variable":
+            elif variable_type == "Numerical and Categorical Variables":
                 numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
                 categorical_features = data.select_dtypes(include=['object']).columns.tolist()
-                selected_vars = st.multiselect("Select two numerical variables and one categorical variable:", 
-                                              numerical_features + categorical_features, max_selections=3)
+                selected_vars = st.multiselect("Select two numerical variables and one categorical variable:", numerical_features + categorical_features, max_selections=3)
 
                 if len(selected_vars) == 3:
                     plot_type = st.selectbox("Select plot type:", [
@@ -282,25 +270,39 @@ if choice == "Upload Your Data":
                         "Stacked Column Chart"
                     ])
 
+                    plt.figure(figsize=(10, 6))
+
                     if plot_type == "Area Chart":
                         data[selected_vars].plot(kind='area')
-                        plt.title(f"Area Chart of {', '.join(selected_vars)}")
+                        plt.title(f'Area Chart of {", ".join(selected_vars)}')
 
-                    elif plot_type == "Stacked Bar Chart":
-                        data.groupby([selected_vars[0], selected_vars[1]]).size().unstack().plot(kind='bar', stacked=True)
-                        plt.title(f"Stacked Bar Chart of {selected_vars[0]} and {selected_vars[1]} by {selected_vars[2]}")
-
-                    elif plot_type == "Stacked Column Chart":
-                        data.groupby([selected_vars[0], selected_vars[1]]).size().unstack().plot(kind='bar', stacked=True, orientation='horizontal')
-                        plt.title(f"Stacked Column Chart of {selected_vars[0]} and {selected_vars[1]} by {selected_vars[2]}")
+                    elif plot_type in ["Stacked Bar Chart", "Stacked Column Chart"]:
+                        data[selected_vars].value_counts().unstack().plot(kind='bar', stacked=True)
+                        plt.title(f'Stacked Chart of {", ".join(selected_vars)}')
 
                     st.pyplot(plt)
 
-        # AI Analysis (This section is just a placeholder)
+        # AI Analysis
         elif analysis_option == "AI Analysis":
             st.subheader("AI Analysis")
-            st.write("AI-powered analysis can be implemented here.")
-            
+            st.write("Select a feature for AI analysis to receive statistical insights.")
+            feature = st.selectbox("Select feature for AI analysis:", data.columns)
+            analysis_description = generate_analysis(feature, data)
+            st.write(analysis_description)
+
+# About Us section
+elif choice == "About Us":
+    st.subheader("About Us")
+    st.write("""
+        This EDA tool helps you visualize and analyze your data easily.
+        It provides various statistical and graphical analyses to enhance your understanding of the data.
+    """)
+
+# Contact Us section
+elif choice == "Contact Us":
+    st.subheader("Contact Us")
+    st.write("For inquiries, please email us at contact@example.com.")
+
 
 
 
