@@ -202,10 +202,15 @@ if choice == "Upload Your Data":
         # Plot Three Variables
         elif analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
-            st.write("Select three variables to visualize. You can select continuous or categorical variables.")
+            st.write("Select the appropriate group for three variables:")
 
-            variable_type = st.selectbox("Choose variable type:", ["Numerical Variables", "Categorical Variables"])
-            if variable_type == "Numerical Variables":
+            plot_group = st.selectbox("Choose group:", [
+                "Three Numerical Variables",
+                "Two Categorical and One Numerical Variable",
+                "Two Numerical and One Categorical Variable"
+            ])
+
+            if plot_group == "Three Numerical Variables":
                 numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
                 selected_vars = st.multiselect("Select three numerical variables:", numerical_features, max_selections=3)
 
@@ -233,22 +238,21 @@ if choice == "Upload Your Data":
                         X, Y = np.meshgrid(data[selected_vars[0]], data[selected_vars[1]])
                         Z = data[selected_vars[2]]
 
-                        # Reshape Z to match the meshgrid shape
-                        Z = Z.values.reshape(X.shape)
+                        # Reshape Z to match the shape of X and Y
+                        Z = np.array(Z).reshape(X.shape)
 
-                        plt.contour(X, Y, Z, levels=15)
-                        plt.title(f"Contour Plot of {selected_vars[2]} based on {selected_vars[0]} and {selected_vars[1]}")
-                        plt.xlabel(selected_vars[0])
-                        plt.ylabel(selected_vars[1])
+                        plt.contour(X, Y, Z)
+                        plt.title('Contour Plot of Selected Numerical Variables')
 
                     st.pyplot(plt)
 
-            elif variable_type == "Categorical Variables":
+            elif plot_group == "Two Categorical and One Numerical Variable":
                 categorical_features = data.select_dtypes(include=['object']).columns.tolist()
-                selected_vars = st.multiselect("Select three categorical variables:", categorical_features, max_selections=3)
+                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
+                selected_vars = st.multiselect("Select two categorical variables and one numerical variable:",
+                                              categorical_features + numerical_features, max_selections=3)
 
                 if len(selected_vars) == 3:
-                    st.write("### Three Categorical Variables Options")
                     plot_type = st.selectbox("Select plot type:", [
                         "Grid Plot"
                     ])
@@ -258,10 +262,11 @@ if choice == "Upload Your Data":
                     plt.title(f'Grouped Bar Chart of {", ".join(selected_vars)}')
                     st.pyplot(plt)
 
-            elif variable_type == "Numerical and Categorical Variables":
+            elif plot_group == "Two Numerical and One Categorical Variable":
                 numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
                 categorical_features = data.select_dtypes(include=['object']).columns.tolist()
-                selected_vars = st.multiselect("Select two numerical variables and one categorical variable:", numerical_features + categorical_features, max_selections=3)
+                selected_vars = st.multiselect("Select two numerical variables and one categorical variable:",
+                                              numerical_features + categorical_features, max_selections=3)
 
                 if len(selected_vars) == 3:
                     plot_type = st.selectbox("Select plot type:", [
@@ -302,6 +307,7 @@ elif choice == "About Us":
 elif choice == "Contact Us":
     st.subheader("Contact Us")
     st.write("For inquiries, please email us at contact@example.com.")
+
 
 
 
