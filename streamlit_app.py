@@ -241,13 +241,38 @@ elif choice == "Upload Your Data":
                         plt.title('3D Scatter Plot of Selected Numerical Variables')
                         st.pyplot(plt)
 
-                    elif plot_type == "Contour Plot":
-                        x = np.linspace(data[selected_vars[0]].min(), data[selected_vars[0]].max(), 100)
-                        y = np.linspace(data[selected_vars[1]].min(), data[selected_vars[1]].max(), 100)
-                        X, Y = np.meshgrid(x, y)
-                        Z = np.random.rand(100, 100)  # You can replace this with an actual function of X, Y
-                        plt.contour(X, Y, Z)
-                        plt.title(f'Contour Plot of {selected_vars[0]} and {selected_vars[1]} vs {selected_vars[2]}')
+                   elif plot_choice == "Contour Plot":
+                        fig = plt.figure(figsize=(10, 6))
+                        ax = fig.add_subplot(111)
+    
+                        # Chọn 3 biến từ dữ liệu
+                        x_var, y_var, z_var = selected_vars
+    
+                        # Chuyển dữ liệu thành dạng phù hợp với meshgrid
+                        # Đảm bảo các giá trị x, y, z đều được sắp xếp
+                        x = data[x_var].dropna().values
+                        y = data[y_var].dropna().values
+                        z = data[z_var].dropna().values
+
+                        # Tạo lưới (grid) cho biểu đồ contour
+                        X, Y = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
+
+                        # Dự đoán các giá trị Z cho lưới X, Y (sử dụng interpolation)
+                        from scipy.interpolate import griddata
+                        Z = griddata((x, y), z, (X, Y), method='linear')
+
+                        # Vẽ contour plot
+                        contour = ax.contour(X, Y, Z, levels=10, cmap='coolwarm')
+                        plt.title(f'Contour Plot of {z_var} vs {x_var} and {y_var}')
+                        plt.xlabel(x_var)
+                        plt.ylabel(y_var)
+
+                        # Thêm colorbar
+                        plt.colorbar(contour, ax=ax)
+
+                        # Hiển thị biểu đồ
+                        st.pyplot(fig)
+
                         
                     elif plot_choice == "Bubble Chart":
                         x, y, z = selected_vars
