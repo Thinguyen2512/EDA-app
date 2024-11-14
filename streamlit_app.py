@@ -85,6 +85,21 @@ elif choice == "Upload Your Data":
             "AI Analysis"
         ])
 
+        # General filter for selecting specific rows, columns, or values
+        st.sidebar.header("General Filter")
+        filter_option = st.sidebar.selectbox("Filter data by:", ["None", "Specific Row", "Specific Column", "Specific Value"])
+
+        if filter_option == "Specific Row":
+            row_to_filter = st.sidebar.slider("Select row number", min_value=0, max_value=len(data)-1)
+            data = data.iloc[[row_to_filter]]
+        elif filter_option == "Specific Column":
+            column_to_filter = st.sidebar.selectbox("Select column", data.columns)
+            data = data[[column_to_filter]]
+        elif filter_option == "Specific Value":
+            column_to_filter = st.sidebar.selectbox("Select column to filter by value", data.columns)
+            value_to_filter = st.sidebar.text_input("Enter value")
+            data = data[data[column_to_filter].astype(str).str.contains(value_to_filter, na=False)]
+            
         # Summary Statistics
         if analysis_option == "Summary Statistics":
             st.subheader("Summary Statistics")
