@@ -396,21 +396,32 @@ elif choice == "Upload Your Data":
                     st.write("Not enough numerical columns for t-test.")
 
             elif test_type == "ANOVA":
-                st.write("### One-way ANOVA")
-                cat_cols = data.select_dtypes(include='object').columns.tolist()
-                num_cols = data.select_dtypes(include=np.number).columns.tolist()
-                if cat_cols and num_cols:
-                    cat_col = st.selectbox("Select categorical column:", cat_cols)
-                    num_col = st.selectbox("Select numerical column:", num_cols)
-                    groups = [group[num_col].dropna() for _, group in data.groupby(cat_col)]
-                    f_stat, p_value = f_oneway(*groups)
-                    st.write(f"F-statistic: {f_stat:.4f}, P-value: {p_value:.4f}")
-                    if p_value < 0.05:
-                        st.write("Result: Reject null hypothesis (significant difference among groups).")
-                    else:
-                        st.write("Result: Fail to reject null hypothesis (no significant difference among groups).")
-                else:
-                    st.write("Not enough data for ANOVA.")
+    st.write("### One-way ANOVA")
+    cat_cols = data.select_dtypes(include='object').columns.tolist()
+    num_cols = data.select_dtypes(include=np.number).columns.tolist()
+    
+    if cat_cols and num_cols:
+        cat_col = st.selectbox("Select categorical column:", cat_cols)
+        num_col = st.selectbox("Select numerical column:", num_cols)
+        
+        # Group by categorical column and filter out groups with fewer than 2 data points
+        groups = [group[num_col].dropna() for _, group in data.groupby(cat_col)]
+        
+        # Filter groups that have at least 2 data points
+        groups = [group for group in groups if len(group) > 1]
+        
+        if len(groups) > 1:  # Ensure there are enough groups for ANOVA
+            f_stat, p_value = f_oneway(*groups)
+            st.write(f"F-statistic: {f_stat:.4f}, P-value: {p_value:.4f}")
+            if p_value < 0.05:
+                st.write("Result: Reject null hypothesis (significant difference among groups).")
+            else:
+                st.write("Result: Fail to reject null hypothesis (no significant difference among groups).")
+        else:
+            st.write("Not enough valid groups for ANOVA.")
+    else:
+        st.write("Not enough data for ANOVA.")
+
 
             elif test_type == "Chi-Squared Test":
                 st.write("### Chi-Squared Test")
