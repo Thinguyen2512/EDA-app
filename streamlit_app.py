@@ -375,7 +375,7 @@ elif choice == "Upload Your Data":
                         st.pyplot(plt)
                         
             # Hypothesis Testing
-        if analysis_option == "Hypothesis Testing":
+        elif analysis_option == "Hypothesis Testing":
             st.subheader("Hypothesis Testing")
 
             test_type = st.selectbox("Select Test Type:", ["t-test", "ANOVA", "Chi-Squared Test", "Linear Regression"])
@@ -386,6 +386,7 @@ elif choice == "Upload Your Data":
                 if len(num_cols) >= 2:
                     col1 = st.selectbox("Select first numerical column:", num_cols)
                     col2 = st.selectbox("Select second numerical column:", num_cols, index=1)
+                    # Perform t-test
                     t_stat, p_value = ttest_ind(data[col1].dropna(), data[col2].dropna())
                     st.write(f"T-statistic: {t_stat:.4f}, P-value: {p_value:.4f}")
                     if p_value < 0.05:
@@ -396,32 +397,31 @@ elif choice == "Upload Your Data":
                     st.write("Not enough numerical columns for t-test.")
 
             elif test_type == "ANOVA":
-    st.write("### One-way ANOVA")
-    cat_cols = data.select_dtypes(include='object').columns.tolist()
-    num_cols = data.select_dtypes(include=np.number).columns.tolist()
-    
-    if cat_cols and num_cols:
-        cat_col = st.selectbox("Select categorical column:", cat_cols)
-        num_col = st.selectbox("Select numerical column:", num_cols)
-        
-        # Group by categorical column and filter out groups with fewer than 2 data points
-        groups = [group[num_col].dropna() for _, group in data.groupby(cat_col)]
-        
-        # Filter groups that have at least 2 data points
-        groups = [group for group in groups if len(group) > 1]
-        
-        if len(groups) > 1:  # Ensure there are enough groups for ANOVA
-            f_stat, p_value = f_oneway(*groups)
-            st.write(f"F-statistic: {f_stat:.4f}, P-value: {p_value:.4f}")
-            if p_value < 0.05:
-                st.write("Result: Reject null hypothesis (significant difference among groups).")
-            else:
-                st.write("Result: Fail to reject null hypothesis (no significant difference among groups).")
-        else:
-            st.write("Not enough valid groups for ANOVA.")
-    else:
-        st.write("Not enough data for ANOVA.")
+                st.write("### One-way ANOVA")
+                cat_cols = data.select_dtypes(include='object').columns.tolist()
+                num_cols = data.select_dtypes(include=np.number).columns.tolist()
 
+                if cat_cols and num_cols:
+                    cat_col = st.selectbox("Select categorical column:", cat_cols)
+                    num_col = st.selectbox("Select numerical column:", num_cols)
+                    
+                    # Group by categorical column and filter out groups with fewer than 2 data points
+                    groups = [group[num_col].dropna() for _, group in data.groupby(cat_col)]
+                    
+                    # Filter groups that have at least 2 data points
+                    groups = [group for group in groups if len(group) > 1]
+                    
+                    if len(groups) > 1:  # Ensure there are enough groups for ANOVA
+                        f_stat, p_value = f_oneway(*groups)
+                        st.write(f"F-statistic: {f_stat:.4f}, P-value: {p_value:.4f}")
+                        if p_value < 0.05:
+                            st.write("Result: Reject null hypothesis (significant difference among groups).")
+                        else:
+                            st.write("Result: Fail to reject null hypothesis (no significant difference among groups).")
+                    else:
+                        st.write("Not enough valid groups for ANOVA.")
+                else:
+                    st.write("Not enough data for ANOVA.")
 
             elif test_type == "Chi-Squared Test":
                 st.write("### Chi-Squared Test")
@@ -458,66 +458,66 @@ elif choice == "Upload Your Data":
                         st.write("Mismatch in data length between X and Y.")
                 else:
                     st.write("Not enough numerical columns for regression.")
-                    
+
         # AI Analysis Section
-elif analysis_option == "AI Analysis":
-    st.subheader("AI-based Analysis: Predictive Analysis")
-    features = st.multiselect("Select input features (X):", data.columns)
-    target = st.selectbox("Select target variable (y):", data.columns)
+        elif analysis_option == "AI Analysis":
+            st.subheader("AI-based Analysis: Predictive Analysis")
+            features = st.multiselect("Select input features (X):", data.columns)
+            target = st.selectbox("Select target variable (y):", data.columns)
 
-    if features and target:
-        st.write(f"Selected input features: {features}")
-        st.write(f"Selected target variable: {target}")
-        
-        # Clean numeric columns for modeling
-        X = data[features].apply(pd.to_numeric, errors='coerce')  # Convert to numeric
-        y = pd.to_numeric(data[target], errors='coerce')  # Convert target to numeric
+            if features and target:
+                st.write(f"Selected input features: {features}")
+                st.write(f"Selected target variable: {target}")
+                
+                # Clean numeric columns for modeling
+                X = data[features].apply(pd.to_numeric, errors='coerce')  # Convert to numeric
+                y = pd.to_numeric(data[target], errors='coerce')  # Convert target to numeric
 
-        # Drop rows with NaN values in either X or y
-        X = X.dropna()
-        y = y.dropna()
+                # Drop rows with NaN values in either X or y
+                X = X.dropna()
+                y = y.dropna()
 
-        # Ensure that X and y have the same length (drop rows where either X or y has NaN)
-        X = X.loc[y.index]
-        y = y.loc[X.index]
+                # Ensure that X and y have the same length (drop rows where either X or y has NaN)
+                X = X.loc[y.index]
+                y = y.loc[X.index]
 
-        # Now you can proceed with train_test_split safely
-        if len(X) > 0 and len(y) > 0:  # Check if data is available
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+                # Now you can proceed with train_test_split safely
+                if len(X) > 0 and len(y) > 0:  # Check if data is available
+                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-            # Select model type
-            model_choice = st.selectbox("Select model:", ["Linear Regression", "Decision Tree", "Random Forest"])
-            if model_choice == "Linear Regression":
-                from sklearn.linear_model import LinearRegression
-                model = LinearRegression()
-            elif model_choice == "Decision Tree":
-                from sklearn.tree import DecisionTreeRegressor
-                model = DecisionTreeRegressor()
-            elif model_choice == "Random Forest":
-                from sklearn.ensemble import RandomForestRegressor
-                model = RandomForestRegressor()
+                    # Select model type
+                    model_choice = st.selectbox("Select model:", ["Linear Regression", "Decision Tree", "Random Forest"])
+                    if model_choice == "Linear Regression":
+                        from sklearn.linear_model import LinearRegression
+                        model = LinearRegression()
+                    elif model_choice == "Decision Tree":
+                        from sklearn.tree import DecisionTreeRegressor
+                        model = DecisionTreeRegressor()
+                    elif model_choice == "Random Forest":
+                        from sklearn.ensemble import RandomForestRegressor
+                        model = RandomForestRegressor()
 
-            # Train Model
-            model.fit(X_train, y_train)
-            y_pred = model.predict(X_test)
+                    # Train Model
+                    model.fit(X_train, y_train)
+                    y_pred = model.predict(X_test)
 
-            # Display Metrics
-            mse = mean_squared_error(y_test, y_pred)
-            r2 = r2_score(y_test, y_pred)
-            st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
-            st.write(f"**R-squared (R²):** {r2:.2f}")
+                    # Display Metrics
+                    mse = mean_squared_error(y_test, y_pred)
+                    r2 = r2_score(y_test, y_pred)
+                    st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
+                    st.write(f"**R-squared (R²):** {r2:.2f}")
 
-            # Visualization
-            st.subheader("Prediction vs Actual")
-            fig, ax = plt.subplots()
-            ax.scatter(y_test, y_pred, alpha=0.5)
-            ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
-            ax.set_xlabel("Actual")
-            ax.set_ylabel("Predicted")
-            plt.title("Prediction vs Actual")
-            st.pyplot(fig)
-        else:
-            st.write("There is not enough data to train the model.")
+                    # Visualization
+                    st.subheader("Prediction vs Actual")
+                    fig, ax = plt.subplots()
+                    ax.scatter(y_test, y_pred, alpha=0.5)
+                    ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+                    ax.set_xlabel("Actual")
+                    ax.set_ylabel("Predicted")
+                    plt.title("Prediction vs Actual")
+                    st.pyplot(fig)
+                else:
+                    st.write("There is not enough data to train the model.")
 
 
 # Contact Us section
