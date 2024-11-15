@@ -451,60 +451,55 @@ elif choice == "Upload Your Data":
         # AI Analysis Placeholder (Optional)
         elif analysis_option == "AI Analysis":
             st.subheader("AI-based Analysis: Predictive Analysis")
-    st.write("Select variables for predictive analysis.")
+            features = st.multiselect("Select input features (X):", data.columns)
+            target = st.selectbox("Select target variable (y):", data.columns)
 
-    # Feature selection
-features = st.multiselect("Select input features (X):", data.columns)
-target = st.selectbox("Select target variable (y):", data.columns)
+            if features and target:
+                st.write(f"Selected input features: {features}")
+                st.write(f"Selected target variable: {target}")
+                
+                # Clean numeric columns for modeling
+                X = data[features].apply(pd.to_numeric, errors='coerce').dropna()
+                y = pd.to_numeric(data[target], errors='coerce').dropna()
 
-if features and target:
-    st.write(f"Selected input features: {features}")
-    st.write(f"Selected target variable: {target}")
-    if features and target:
-        # Clean numeric columns for modeling
-        X = data[features].apply(pd.to_numeric, errors='coerce').dropna()
-        y = pd.to_numeric(data[target], errors='coerce').dropna()
+                # Align the indices
+                X = X.loc[y.index]
+                y = y.loc[X.index]
 
-        # Align the indices
-        X = X.loc[y.index]
-        y = y.loc[X.index]
+                # Train-Test Split
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-        # Train-Test Split
-        from sklearn.model_selection import train_test_split
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+                # Model Selection
+                model_choice = st.selectbox("Select model:", ["Linear Regression", "Decision Tree", "Random Forest"])
+                if model_choice == "Linear Regression":
+                    from sklearn.linear_model import LinearRegression
+                    model = LinearRegression()
+                elif model_choice == "Decision Tree":
+                    from sklearn.tree import DecisionTreeRegressor
+                    model = DecisionTreeRegressor()
+                elif model_choice == "Random Forest":
+                    from sklearn.ensemble import RandomForestRegressor
+                    model = RandomForestRegressor()
 
-        # Model Selection
-        model_choice = st.selectbox("Select model:", ["Linear Regression", "Decision Tree", "Random Forest"])
-        if model_choice == "Linear Regression":
-            from sklearn.linear_model import LinearRegression
-            model = LinearRegression()
-        elif model_choice == "Decision Tree":
-            from sklearn.tree import DecisionTreeRegressor
-            model = DecisionTreeRegressor()
-        elif model_choice == "Random Forest":
-            from sklearn.ensemble import RandomForestRegressor
-            model = RandomForestRegressor()
+                # Train Model
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
 
-        # Train Model
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
+                # Display Metrics
+                mse = mean_squared_error(y_test, y_pred)
+                r2 = r2_score(y_test, y_pred)
+                st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
+                st.write(f"**R-squared (R²):** {r2:.2f}")
 
-        # Display Metrics
-        from sklearn.metrics import mean_squared_error, r2_score
-        mse = mean_squared_error(y_test, y_pred)
-        r2 = r2_score(y_test, y_pred)
-        st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
-        st.write(f"**R-squared (R²):** {r2:.2f}")
-
-        # Visualization
-        st.subheader("Prediction vs Actual")
-        fig, ax = plt.subplots()
-        ax.scatter(y_test, y_pred, alpha=0.5)
-        ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
-        ax.set_xlabel("Actual")
-        ax.set_ylabel("Predicted")
-        plt.title("Prediction vs Actual")
-        st.pyplot(fig)
+                # Visualization
+                st.subheader("Prediction vs Actual")
+                fig, ax = plt.subplots()
+                ax.scatter(y_test, y_pred, alpha=0.5)
+                ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+                ax.set_xlabel("Actual")
+                ax.set_ylabel("Predicted")
+                plt.title("Prediction vs Actual")
+                st.pyplot(fig)
 
 # Contact Us section
 elif choice == "Contact Us":
