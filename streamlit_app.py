@@ -8,8 +8,7 @@ from statsmodels.graphics.mosaicplot import mosaic
 from scipy.interpolate import griddata
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.stats import ttest_ind, f_oneway, chi2_contingency
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, r2_score
+
 
 # Custom CSS for styling
 st.markdown(
