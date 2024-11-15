@@ -453,10 +453,13 @@ elif choice == "Upload Your Data":
             st.subheader("AI-based Analysis: Predictive Analysis")
     st.write("Select variables for predictive analysis.")
 
-    # Select input and output features
-    features = st.multiselect("Select input features (X):", data.columns)
-    target = st.selectbox("Select target variable (y):", data.columns)
+    # Feature selection
+features = st.multiselect("Select input features (X):", data.columns)
+target = st.selectbox("Select target variable (y):", data.columns)
 
+if features and target:
+    st.write(f"Selected input features: {features}")
+    st.write(f"Selected target variable: {target}")
     if features and target:
         # Clean numeric columns for modeling
         X = data[features].apply(pd.to_numeric, errors='coerce').dropna()
