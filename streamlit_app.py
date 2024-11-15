@@ -441,62 +441,62 @@ elif choice == "Upload Your Data":
 
             elif test_type == "Linear Regression":
                 st.write("### Linear Regression")
-               features = st.multiselect("Select input features (X):", data.columns)
-            target = st.selectbox("Select target variable (y):", data.columns)
+                features = st.multiselect("Select input features (X):", data.columns)
+                target = st.selectbox("Select target variable (y):", data.columns)
 
-            if features and target:
-                st.write(f"Selected input features: {features}")
-                st.write(f"Selected target variable: {target}")
-                
-                # Clean numeric columns for modeling
-                X = data[features].apply(pd.to_numeric, errors='coerce')  # Convert to numeric
-                y = pd.to_numeric(data[target], errors='coerce')  # Convert target to numeric
+                if features and target:
+                    st.write(f"Selected input features: {features}")
+                    st.write(f"Selected target variable: {target}")
+                    
+                    # Clean numeric columns for modeling
+                    X = data[features].apply(pd.to_numeric, errors='coerce')  # Convert to numeric
+                    y = pd.to_numeric(data[target], errors='coerce')  # Convert target to numeric
 
-                # Drop rows with NaN values in either X or y
-                X = X.dropna()
-                y = y.dropna()
+                    # Drop rows with NaN values in either X or y
+                    X = X.dropna()
+                    y = y.dropna()
 
-                # Ensure that X and y have the same length (drop rows where either X or y has NaN)
-                X = X.loc[y.index]
-                y = y.loc[X.index]
+                    # Ensure that X and y have the same length (drop rows where either X or y has NaN)
+                    X = X.loc[y.index]
+                    y = y.loc[X.index]
 
-                # Now you can proceed with train_test_split safely
-                if len(X) > 0 and len(y) > 0:  # Check if data is available
-                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+                    # Now you can proceed with train_test_split safely
+                    if len(X) > 0 and len(y) > 0:  # Check if data is available
+                        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-                    # Select model type
-                    model_choice = st.selectbox("Select model:", ["Linear Regression", "Decision Tree", "Random Forest"])
-                    if model_choice == "Linear Regression":
-                        from sklearn.linear_model import LinearRegression
-                        model = LinearRegression()
-                    elif model_choice == "Decision Tree":
-                        from sklearn.tree import DecisionTreeRegressor
-                        model = DecisionTreeRegressor()
-                    elif model_choice == "Random Forest":
-                        from sklearn.ensemble import RandomForestRegressor
-                        model = RandomForestRegressor()
+                        # Select model type
+                        model_choice = st.selectbox("Select model:", ["Linear Regression", "Decision Tree", "Random Forest"])
+                        if model_choice == "Linear Regression":
+                            from sklearn.linear_model import LinearRegression
+                            model = LinearRegression()
+                        elif model_choice == "Decision Tree":
+                            from sklearn.tree import DecisionTreeRegressor
+                            model = DecisionTreeRegressor()
+                        elif model_choice == "Random Forest":
+                            from sklearn.ensemble import RandomForestRegressor
+                            model = RandomForestRegressor()
 
-                    # Train Model
-                    model.fit(X_train, y_train)
-                    y_pred = model.predict(X_test)
+                        # Train Model
+                        model.fit(X_train, y_train)
+                        y_pred = model.predict(X_test)
 
-                    # Display Metrics
-                    mse = mean_squared_error(y_test, y_pred)
-                    r2 = r2_score(y_test, y_pred)
-                    st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
-                    st.write(f"**R-squared (R²):** {r2:.2f}")
+                        # Display Metrics
+                        mse = mean_squared_error(y_test, y_pred)
+                        r2 = r2_score(y_test, y_pred)
+                        st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
+                        st.write(f"**R-squared (R²):** {r2:.2f}")
 
-                    # Visualization
-                    st.subheader("Prediction vs Actual")
-                    fig, ax = plt.subplots()
-                    ax.scatter(y_test, y_pred, alpha=0.5)
-                    ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
-                    ax.set_xlabel("Actual")
-                    ax.set_ylabel("Predicted")
-                    plt.title("Prediction vs Actual")
-                    st.pyplot(fig)
-                else:
-                    st.write("There is not enough data to train the model.")
+                        # Visualization
+                        st.subheader("Prediction vs Actual")
+                        fig, ax = plt.subplots()
+                        ax.scatter(y_test, y_pred, alpha=0.5)
+                        ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+                        ax.set_xlabel("Actual")
+                        ax.set_ylabel("Predicted")
+                        plt.title("Prediction vs Actual")
+                        st.pyplot(fig)
+                    else:
+                        st.write("There is not enough data to train the model.")
 
         # AI Analysis Placeholder (Optional)
         elif analysis_option == "AI Analysis":
