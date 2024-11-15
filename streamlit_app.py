@@ -441,28 +441,7 @@ elif choice == "Upload Your Data":
 
             elif test_type == "Linear Regression":
                 st.write("### Linear Regression")
-                num_cols = data.select_dtypes(include=np.number).columns.tolist()
-                if len(num_cols) >= 2:
-                    x_col = st.selectbox("Select independent variable (X):", num_cols)
-                    y_col = st.selectbox("Select dependent variable (Y):", num_cols, index=1)
-                    X = data[[x_col]].dropna()
-                    y = data[y_col].dropna()
-                    if len(X) == len(y):
-                        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-                        model = LinearRegression()
-                        model.fit(X_train, y_train)
-                        y_pred = model.predict(X_test)
-                        st.write(f"R-squared: {r2_score(y_test, y_pred):.4f}")
-                        st.write(f"Mean Squared Error: {mean_squared_error(y_test, y_pred):.4f}")
-                    else:
-                        st.write("Mismatch in data length between X and Y.")
-                else:
-                    st.write("Not enough numerical columns for regression.")
-
-        # AI Analysis Section
-        elif analysis_option == "AI Analysis":
-            st.subheader("AI-based Analysis: Predictive Analysis")
-            features = st.multiselect("Select input features (X):", data.columns)
+               features = st.multiselect("Select input features (X):", data.columns)
             target = st.selectbox("Select target variable (y):", data.columns)
 
             if features and target:
@@ -518,6 +497,11 @@ elif choice == "Upload Your Data":
                     st.pyplot(fig)
                 else:
                     st.write("There is not enough data to train the model.")
+
+        # AI Analysis Placeholder (Optional)
+        elif analysis_option == "AI Analysis":
+            st.subheader("AI-based Analysis Placeholder")
+            st.write("AI analysis options will be available soon.")
 
 
 # Contact Us section
