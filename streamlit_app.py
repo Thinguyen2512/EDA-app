@@ -27,6 +27,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+# Helper function to clean and convert columns to numeric if they contain symbols
+def clean_numeric_column(data, column):
+    data[column] = pd.to_numeric(data[column].replace({r'[^\d.]': ''}, regex=True), errors='coerce')
+    return data[column]
+    
 # Function to generate analysis description
 def generate_analysis(feature, data):
     data[feature] = pd.to_numeric(data[feature], errors='coerce')
@@ -85,20 +90,12 @@ elif choice == "Upload Your Data":
             "AI Analysis"
         ])
 
-        # General filter for selecting specific rows, columns, or values
-        st.sidebar.header("General Filter")
-        filter_option = st.sidebar.selectbox("Filter data by:", ["None", "Specific Row", "Specific Column", "Specific Value"])
-
-        if filter_option == "Specific Row":
-            row_to_filter = st.sidebar.slider("Select row number", min_value=0, max_value=len(data)-1)
-            data = data.iloc[[row_to_filter]]
-        elif filter_option == "Specific Column":
-            column_to_filter = st.sidebar.selectbox("Select column", data.columns)
-            data = data[[column_to_filter]]
-        elif filter_option == "Specific Value":
-            column_to_filter = st.sidebar.selectbox("Select column to filter by value", data.columns)
-            value_to_filter = st.sidebar.text_input("Enter value")
-            data = data[data[column_to_filter].astype(str).str.contains(value_to_filter, na=False)]
+        # General filter
+        filter_col = st.sidebar.selectbox("Filter by Column", ["None"] + data.columns.tolist())
+        if filter_col != "None":
+            unique_values = data[filter_col].dropna().unique()
+            filter_value = st.sidebar.selectbox(f"Filter {filter_col} by:", unique_values)
+            data = data[data[filter_col] == filter_value]
             
         # Summary Statistics
         if analysis_option == "Summary Statistics":
@@ -157,6 +154,10 @@ elif choice == "Upload Your Data":
             st.write("Select two variables to visualize their relationship.")
             x_axis = st.selectbox("Select X variable:", data.columns)
             y_axis = st.selectbox("Select Y variable:", data.columns, index=1)
+
+             # Clean the selected features for numerical types
+            data[x_axis] = clean_numeric_column(data, x_axis)
+            data[y_axis] = clean_numeric_column(data, y_axis)
 
             # Grouping options for two variables
             if data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in [np.number, 'float64', 'int64']:
