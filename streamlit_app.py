@@ -154,81 +154,82 @@ elif choice == "Upload Your Data":
             st.pyplot(plt)
 
         # Plot Two Variables
-        elif analysis_option == "Plot Two Variables":
-            st.subheader("Plot Two Variables")
-            st.write("Select two variables to visualize their relationship.")
-            x_axis = st.selectbox("Select X variable:", data.columns)
-            y_axis = st.selectbox("Select Y variable:", data.columns, index=1)
+elif analysis_option == "Plot Two Variables":
+    st.subheader("Plot Two Variables")
+    st.write("Select two variables to visualize their relationship.")
 
-             # Clean the selected features for numerical types
-            data[x_axis] = clean_numeric_column(data, x_axis)
-            data[y_axis] = clean_numeric_column(data, y_axis)
+    # Dropdown for selecting two variables
+    x_axis = st.selectbox("Select X variable:", data.columns)
+    y_axis = st.selectbox("Select Y variable:", data.columns)
 
-            # Grouping options for two variables
-            if data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in [np.number, 'float64', 'int64']:
-                st.write("### Two Numerical Variables Options")
-                plot_type = st.selectbox("Select plot type:", [
-                    "Scatter Plot",
-                    "Line Graph",
-                    "Area Chart"
-                ])
+    # Determine data types
+    x_is_numeric = np.issubdtype(data[x_axis].dtype, np.number)
+    y_is_numeric = np.issubdtype(data[y_axis].dtype, np.number)
 
-                plt.figure(figsize=(10, 6))
+    if x_is_numeric and y_is_numeric:
+        st.write("### Two Numerical Variables Options")
+        plot_type = st.selectbox("Select plot type:", ["Scatter Plot", "Line Graph", "Area Chart"])
 
-                if plot_type == "Scatter Plot":
-                    sns.scatterplot(data=data, x=x_axis, y=y_axis)
-                    plt.title(f'Scatter Plot of {y_axis} vs {x_axis}')
-                    plt.xlabel(x_axis)
-                    plt.ylabel(y_axis)
+        plt.figure(figsize=(10, 6))
+        if plot_type == "Scatter Plot":
+            sns.scatterplot(data=data, x=x_axis, y=y_axis)
+            plt.title(f'Scatter Plot of {y_axis} vs {x_axis}')
+        elif plot_type == "Line Graph":
+            sns.lineplot(data=data, x=x_axis, y=y_axis)
+            plt.title(f'Line Graph of {y_axis} vs {x_axis}')
+        elif plot_type == "Area Chart":
+            plt.fill_between(data[x_axis], data[y_axis], alpha=0.5)
+            plt.title(f'Area Chart of {y_axis} vs {x_axis}')
+        plt.xlabel(x_axis)
+        plt.ylabel(y_axis)
+        st.pyplot(plt)
 
-                elif plot_type == "Line Graph":
-                    plt.plot(data[x_axis], data[y_axis])
-                    plt.title(f'Line Graph of {y_axis} vs {x_axis}')
-                    plt.xlabel(x_axis)
-                    plt.ylabel(y_axis)
+    elif x_is_numeric and not y_is_numeric:
+        st.write("### Numerical X and Categorical Y")
+        plot_type = st.selectbox("Select plot type:", ["Box Plot", "Violin Plot"])
 
-                elif plot_type == "Area Chart":
-                    data[[x_axis, y_axis]].plot(kind='area')
-                    plt.title(f'Area Chart of {y_axis} vs {x_axis}')
-                    plt.xlabel(x_axis)
-                    plt.ylabel(y_axis)
-                st.pyplot(plt)
-                
-            elif data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in ['object']:
-                st.write("### One Numerical and One Categorical Variable Options")
-                plot_type = st.selectbox("Select plot type:", [
-                    "Bar Chart"
-                ])
+        plt.figure(figsize=(10, 6))
+        if plot_type == "Box Plot":
+            sns.boxplot(x=data[y_axis], y=data[x_axis])
+            plt.title(f'Box Plot of {x_axis} by {y_axis}')
+        elif plot_type == "Violin Plot":
+            sns.violinplot(x=data[y_axis], y=data[x_axis])
+            plt.title(f'Violin Plot of {x_axis} by {y_axis}')
+        plt.xlabel(y_axis)
+        plt.ylabel(x_axis)
+        st.pyplot(plt)
 
-                plt.figure(figsize=(10, 6))
+    elif not x_is_numeric and y_is_numeric:
+        st.write("### Categorical X and Numerical Y")
+        plot_type = st.selectbox("Select plot type:", ["Box Plot", "Violin Plot"])
 
-                if plot_type == "Bar Chart":
-                    data.groupby(x_axis)[y_axis].value_counts().unstack().plot(kind='bar')
-                    plt.title(f'Grouped Bar Chart of {y_axis} by {x_axis}')
-                    plt.xlabel(x_axis)
-                    plt.ylabel('Count')
+        plt.figure(figsize=(10, 6))
+        if plot_type == "Box Plot":
+            sns.boxplot(x=data[x_axis], y=data[y_axis])
+            plt.title(f'Box Plot of {y_axis} by {x_axis}')
+        elif plot_type == "Violin Plot":
+            sns.violinplot(x=data[x_axis], y=data[y_axis])
+            plt.title(f'Violin Plot of {y_axis} by {x_axis}')
+        plt.xlabel(x_axis)
+        plt.ylabel(y_axis)
+        st.pyplot(plt)
 
-                st.pyplot(plt)
+    elif not x_is_numeric and not y_is_numeric:
+        st.write("### Two Categorical Variables")
+        plot_type = st.selectbox("Select plot type:", ["Grouped Bar Chart", "Mosaic Plot"])
 
-            elif data[x_axis].dtype in ['object'] and data[y_axis].dtype in ['object']:
-                st.write("### Two Categorical Variables Options")
-                plot_type = st.selectbox("Select plot type:", [
-                    "Grouped Bar Chart",
-                    "Mosaic Plot"
-                ])
+        plt.figure(figsize=(10, 6))
+        if plot_type == "Grouped Bar Chart":
+            data_grouped = data.groupby([x_axis, y_axis]).size().unstack()
+            data_grouped.plot(kind='bar', stacked=True, figsize=(10, 6))
+            plt.title(f'Grouped Bar Chart of {y_axis} by {x_axis}')
+            plt.xlabel(x_axis)
+            plt.ylabel('Count')
+        elif plot_type == "Mosaic Plot":
+            mosaic(data, [x_axis, y_axis])
+            plt.title(f'Mosaic Plot of {x_axis} and {y_axis}')
+        st.pyplot(plt)
 
-                plt.figure(figsize=(10, 6))
-
-                if plot_type == "Grouped Bar Chart":
-                    data.groupby([x_axis, y_axis]).size().unstack().plot(kind='bar', stacked=True)
-                    plt.title(f'Grouped Bar Chart of {y_axis} by {x_axis}')
-                    plt.xlabel(x_axis)
-                    plt.ylabel('Count')
-
-                elif plot_type == "Mosaic Plot":
-                    mosaic(data, [x_axis, y_axis])
-                    plt.title(f'Mosaic Plot of {x_axis} and {y_axis}')
-                st.pyplot(plt)
 
         # Plot Three Variables
         elif analysis_option == "Plot Three Variables":
