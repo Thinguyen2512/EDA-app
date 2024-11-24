@@ -303,32 +303,65 @@ elif choice == "Upload Your Data":
             # Test selection dropdown
             test_type = st.selectbox(
                 "Select Test Type:",
-                ["t-test", "ANOVA", "Chi-Squared Test", "Linear Regression"]
+                ["One-sample t-test", "Two-sample t-test", "ANOVA", "Chi-Squared Test", "Linear Regression"]
             )
 
-            # 1. Independent t-test
-            if test_type == "t-test":
-                st.write("### Independent t-test")
+            # 1. One-sample t-test
+            if test_type == "One-sample t-test":
+                st.write("### One-sample t-test")
                 num_cols = data.select_dtypes(include=np.number).columns.tolist()
 
-                if len(num_cols) >= 2:
-                    # Allow user to select numerical columns
-                    col1 = st.selectbox("Select the first numerical column:", num_cols)
-                    col2 = st.selectbox("Select the second numerical column:", num_cols, index=1)
+                if len(num_cols) > 0:
+                    # Allow user to select numerical column
+                    column = st.selectbox("Select a numerical column:", num_cols)
+                    # Provide input for the reference value
+                    reference_value = st.number_input("Enter the reference value (e.g., population mean):", value=0)
 
                     # Perform t-test
-                    t_stat, p_value = ttest_ind(data[col1].dropna(), data[col2].dropna())
+                    t_stat, p_value = ttest_1samp(data[column].dropna(), reference_value)
                     st.write(f"**T-statistic:** {t_stat:.4f}")
                     st.write(f"**P-value:** {p_value:.4f}")
 
                     # Interpretation
                     if p_value < 0.05:
-                        st.write("**Result:** Reject the null hypothesis (significant difference).")
+                        st.write("**Result:** Reject the null hypothesis (the mean is significantly different from the reference value).")
                     else:
-                        st.write("**Result:** Fail to reject the null hypothesis (no significant difference).")
+                        st.write("**Result:** Fail to reject the null hypothesis (no significant difference from the reference value).")
                 else:
-                    st.write("Not enough numerical columns available for t-test.")
+                    st.write("Not enough numerical columns available for the t-test.")
 
+            # 2. Two-sample t-test
+            elif test_type == "Two-sample t-test":
+                st.write("### Two-sample t-test")
+                cat_cols = data.select_dtypes(include='object').columns.tolist()
+                num_cols = data.select_dtypes(include=np.number).columns.tolist()
+
+                if len(cat_cols) > 0 and len(num_cols) > 0:
+                    # Allow user to select categorical and numerical columns
+                    group_col = st.selectbox("Select the categorical column (group):", cat_cols)
+                    column = st.selectbox("Select the numerical column:", num_cols)
+
+                    # Check if column is binary for group separation
+                    unique_values = data[group_col].dropna().unique()
+                    if len(unique_values) == 2:
+                        # Perform two-sample t-test
+                        group1 = data[data[group_col] == unique_values[0]][column].dropna()
+                        group2 = data[data[group_col] == unique_values[1]][column].dropna()
+
+                        t_stat, p_value = ttest_ind(group1, group2)
+                        st.write(f"**T-statistic:** {t_stat:.4f}")
+                        st.write(f"**P-value:** {p_value:.4f}")
+
+                        # Interpretation
+                        if p_value < 0.05:
+                            st.write("**Result:** Reject the null hypothesis (the means of the two groups are significantly different).")
+                        else:
+                            st.write("**Result:** Fail to reject the null hypothesis (no significant difference between the two groups).")
+                    else:
+                        st.write("The selected categorical column does not have exactly two groups, which are required for a two-sample t-test.")
+                else:
+                    st.write("Not enough categorical or numerical columns for two-sample t-test.")
+                    
             # 2. ANOVA
             elif test_type == "ANOVA":
                 st.write("### One-way ANOVA")
