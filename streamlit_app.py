@@ -306,7 +306,7 @@ elif choice == "Upload Your Data":
                 ["One-sample t-test", "Two-sample t-test", "ANOVA", "Chi-Squared Test", "Linear Regression"]
             )
 
-            # 1. One-sample t-test
+           # 1. One-sample t-test
             if test_type == "One-sample t-test":
                 st.write("### One-sample t-test")
                 num_cols = data.select_dtypes(include=np.number).columns.tolist()
@@ -318,7 +318,7 @@ elif choice == "Upload Your Data":
                     reference_value = st.number_input("Enter the reference value (e.g., population mean):", value=0)
 
                     # Perform t-test
-                    t_stat, p_value = ttest_1samp(data[column].dropna(), reference_value)
+                    t_stat, p_value = ttest_ind(data[column].dropna(), reference_value)
                     st.write(f"**T-statistic:** {t_stat:.4f}")
                     st.write(f"**P-value:** {p_value:.4f}")
 
@@ -362,7 +362,7 @@ elif choice == "Upload Your Data":
                 else:
                     st.write("Not enough categorical or numerical columns for two-sample t-test.")
                     
-            # 2. ANOVA
+            # 3. ANOVA
             elif test_type == "ANOVA":
                 st.write("### One-way ANOVA")
                 cat_cols = data.select_dtypes(include='object').columns.tolist()
@@ -393,7 +393,7 @@ elif choice == "Upload Your Data":
                 else:
                     st.write("Not enough categorical or numerical columns for ANOVA.")
 
-            # 3. Chi-Squared Test
+            # 4. Chi-Squared Test
             elif test_type == "Chi-Squared Test":
                 st.write("### Chi-Squared Test for Independence")
                 cat_cols = data.select_dtypes(include='object').columns.tolist()
@@ -421,7 +421,7 @@ elif choice == "Upload Your Data":
                 else:
                     st.write("Not enough categorical columns for Chi-Squared Test.")
 
-            # 4. Linear Regression
+            # 5. Linear Regression
             elif test_type == "Linear Regression":
                 st.write("### Linear Regression")
                 features = st.multiselect("Select input features (X):", data.columns)
