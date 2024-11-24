@@ -213,146 +213,87 @@ elif choice == "Upload Your Data":
         # Plot Three Variables
         elif analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
-            st.write("Select three variables to visualize. Choose among the following options:")
+            st.write("Select variables to visualize and assign them to the X, Y, and Z axes.")
 
-            plot_type = st.selectbox("Select Analysis Type for 3 Variables:", [
-                "3 Numerical Variables",
-                "2 Categorical Variables and 1 Numerical Variable",
-                "2 Numerical Variables and 1 Categorical Variable"
-            ])
+            x_axis = st.selectbox("Select variable for X axis:", data.columns)
+            y_axis = st.selectbox("Select variable for Y axis:", data.columns, index=1)
+            z_axis = st.selectbox("Select variable for Z axis (e.g., size, color, or value):", data.columns, index=2)
 
-            if plot_type == "3 Numerical Variables":
-                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
+            x_is_numeric = np.issubdtype(data[x_axis].dtype, np.number)
+            y_is_numeric = np.issubdtype(data[y_axis].dtype, np.number)
+            z_is_numeric = np.issubdtype(data[z_axis].dtype, np.number)
 
-                selected_vars = st.multiselect("Select three numerical variables:", numerical_features, max_selections=3)
+            if x_is_numeric and y_is_numeric and z_is_numeric:
+                st.write("### All Variables Are Numerical")
+                plot_choice = st.selectbox("Select plot type:", ["3D Scatter Plot", "Contour Plot", "Bubble Chart"])
 
-                if len(selected_vars) == 3:
-                    st.write("### Plot for 3 Numerical Variables")
-                    plot_choice = st.selectbox("Select plot type:", [
-                        "3D Scatter Plot",
-                        "Contour Plot",
-                        "Bubble Chart"
-                    ])
+                if plot_choice == "3D Scatter Plot":
+                    fig = plt.figure(figsize=(10, 6))
+                    ax = fig.add_subplot(111, projection='3d')
+                    ax.scatter(data[x_axis], data[y_axis], data[z_axis])
+                    ax.set_xlabel(x_axis)
+                    ax.set_ylabel(y_axis)
+                    ax.set_zlabel(z_axis)
+                    plt.title('3D Scatter Plot of Selected Variables')
+                    st.pyplot(fig)
 
-                    if plot_choice == "3D Scatter Plot":
-                        fig = plt.figure(figsize=(10, 6))
-                        ax = fig.add_subplot(111, projection='3d')
-                        ax.scatter(data[selected_vars[0]], data[selected_vars[1]], data[selected_vars[2]])
-                        ax.set_xlabel(selected_vars[0])
-                        ax.set_ylabel(selected_vars[1])
-                        ax.set_zlabel(selected_vars[2])
-                        plt.title('3D Scatter Plot of Selected Numerical Variables')
-                        st.pyplot(plt)
+                elif plot_choice == "Contour Plot":
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    x = data[x_axis].dropna().values
+                    y = data[y_axis].dropna().values
+                    z = data[z_axis].dropna().values
+                    X, Y = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
+                    Z = griddata((x, y), z, (X, Y), method='linear')
+                    contour = ax.contourf(X, Y, Z, cmap='coolwarm')
+                    plt.colorbar(contour, ax=ax)
+                    ax.set_xlabel(x_axis)
+                    ax.set_ylabel(y_axis)
+                    plt.title(f'Contour Plot of {z_axis} by {x_axis} and {y_axis}')
+                    st.pyplot(fig)
 
-                    elif plot_choice == "Contour Plot":
-                        fig = plt.figure(figsize=(10, 6))
-                        ax = fig.add_subplot(111)
-    
-                        # Chọn 3 biến từ dữ liệu
-                        x_var, y_var, z_var = selected_vars
-    
-                        # Chuyển dữ liệu thành dạng phù hợp với meshgrid
-                        x = data[x_var].dropna().values
-                        y = data[y_var].dropna().values
-                        z = data[z_var].dropna().values
+                elif plot_choice == "Bubble Chart":
+                    fig, ax = plt.subplots(figsize=(10, 6))
+                    scatter = ax.scatter(data[x_axis], data[y_axis], s=data[z_axis]*10, alpha=0.6, c=data[z_axis], cmap='coolwarm', edgecolors='w')
+                    plt.colorbar(scatter, ax=ax, label=z_axis)
+                    ax.set_xlabel(x_axis)
+                    ax.set_ylabel(y_axis)
+                    plt.title(f'Bubble Chart of {y_axis} vs {x_axis} with Size by {z_axis}')
+                    st.pyplot(fig)
 
-                        # Tạo lưới (grid) cho biểu đồ contour
-                        X, Y = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
+            elif not x_is_numeric and not y_is_numeric and z_is_numeric:
+                st.write("### Two Categorical Variables and One Numerical Variable")
+                plot_choice = st.selectbox("Select plot type:", ["Grid Plot (Heatmap)"])
 
-                        # Dự đoán các giá trị Z cho lưới X, Y (sử dụng interpolation)
-                        Z = griddata((x, y), z, (X, Y), method='linear')
+                if plot_choice == "Grid Plot (Heatmap)":
+                    grid_data = data.pivot_table(values=z_axis, index=x_axis, columns=y_axis, aggfunc='mean')
+                    plt.figure(figsize=(10, 6))
+                    sns.heatmap(grid_data, annot=True, cmap="coolwarm", fmt=".1f")
+                    plt.title(f'Heatmap of {z_axis} by {x_axis} and {y_axis}')
+                    plt.xlabel(y_axis)
+                    plt.ylabel(x_axis)
+                    st.pyplot(plt)
 
-                        # Vẽ contour plot
-                        contour = ax.contour(X, Y, Z, levels=10, cmap='coolwarm')
-                        plt.title(f'Contour Plot of {z_var} vs {x_var} and {y_var}')
-                        plt.xlabel(x_var)
-                        plt.ylabel(y_var)
+            elif x_is_numeric and y_is_numeric and not z_is_numeric:
+                st.write("### Two Numerical Variables and One Categorical Variable")
+                plot_choice = st.selectbox("Select plot type:", ["Stacked Bar Chart", "Stacked Column Chart"])
 
-                        # Thêm colorbar
-                        plt.colorbar(contour, ax=ax)
+                if plot_choice == "Stacked Bar Chart":
+                    stacked_data = data.groupby([z_axis, x_axis])[y_axis].sum().unstack()
+                    plt.figure(figsize=(10, 6))
+                    stacked_data.plot(kind='bar', stacked=True)
+                    plt.title(f'Stacked Bar Chart of {y_axis} vs {x_axis} grouped by {z_axis}')
+                    plt.xlabel(x_axis)
+                    plt.ylabel(y_axis)
+                    st.pyplot(plt)
 
-                        # Hiển thị biểu đồ
-                        st.pyplot(fig)
-
-                    elif plot_choice == "Bubble Chart":
-                        x, y, z = selected_vars
-                        fig, ax = plt.subplots(figsize=(10, 6))
-                        ax.scatter(data[x], data[y], s=data[z] * 10, alpha=0.5, c='blue', edgecolors="w", linewidth=0.5)
-                        ax.set_xlabel(x)
-                        ax.set_ylabel(y)
-                        plt.title(f'Bubble Chart of {y} vs {x} with Bubble Size based on {z}')
-                        st.pyplot(plt)
-
-            elif plot_type == "2 Categorical Variables and 1 Numerical Variable":
-                categorical_features = data.select_dtypes(include=['object']).columns.tolist()
-                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
-
-                selected_vars = st.multiselect("Select two categorical variables and one numerical variable:", 
-                                              categorical_features + numerical_features, max_selections=3)
-
-                if len(selected_vars) == 3:
-                    st.write("### Plot for 2 Categorical Variables and 1 Numerical Variable")
-                    plot_choice = st.selectbox("Select plot type:", [
-                        "Grid Plot (Heatmap)"
-                    ])
-
-                    if plot_choice == "Grid Plot (Heatmap)":
-                        x, y, z = selected_vars
-                        # Create grid data using pivot_table
-                        grid_data = data.pivot_table(values=z, index=x, columns=y, aggfunc='sum')
-                        
-                        # Grid plot using heatmap
-                        plt.figure(figsize=(10, 6))
-                        sns.heatmap(grid_data, annot=True, cmap="coolwarm", fmt=".1f")
-                        plt.title(f'Grid Plot (Heatmap) of {z} by {x} and {y}')
-                        plt.xlabel(y)
-                        plt.ylabel(x)
-                        st.pyplot(plt)
-
-            elif plot_type == "2 Numerical Variables and 1 Categorical Variable":
-                numerical_features = data.select_dtypes(include=[np.number]).columns.tolist()
-                categorical_features = data.select_dtypes(include=['object']).columns.tolist()
-
-                selected_vars = st.multiselect("Select two numerical variables and one categorical variable:", 
-                                              numerical_features + categorical_features, max_selections=3)
-
-                if len(selected_vars) == 3:
-                    st.write("### Plot for 2 Numerical Variables and 1 Categorical Variable")
-                    plot_choice = st.selectbox("Select plot type:", [
-                        "Area Chart",
-                        "Stacked Bar Chart",
-                        "Stacked Column Chart"
-                    ])
-
-                    if plot_choice == "Area Chart":
-                        x, y, z = selected_vars
-                        # Grouping by categorical variable and summing numerical ones
-                        area_data = data.groupby([z, x])[y].sum().unstack()
-                        area_data.plot(kind='area', figsize=(10, 6), stacked=True)
-                        plt.title(f'Area Chart of {y} vs {x} grouped by {z}')
-                        plt.xlabel(x)
-                        plt.ylabel(y)
-                        st.pyplot(plt)
-
-                    elif plot_choice == "Stacked Bar Chart":
-                        x, y, z = selected_vars
-                        # Stacked Bar Chart
-                        stacked_data = data.groupby([z, x])[y].sum().unstack()
-                        stacked_data.plot(kind='bar', stacked=True, figsize=(10, 6))
-                        plt.title(f'Stacked Bar Chart of {y} vs {x} grouped by {z}')
-                        plt.xlabel(x)
-                        plt.ylabel(y)
-                        st.pyplot(plt)
-
-                    elif plot_choice == "Stacked Column Chart":
-                        x, y, z = selected_vars
-                        # Stacked Column Chart
-                        stacked_data = data.groupby([z, x])[y].sum().unstack()
-                        stacked_data.plot(kind='bar', stacked=True, figsize=(10, 6), orientation='vertical')
-                        plt.title(f'Stacked Column Chart of {y} vs {x} grouped by {z}')
-                        plt.xlabel(x)
-                        plt.ylabel(y)
-                        st.pyplot(plt)
+                elif plot_choice == "Stacked Column Chart":
+                    stacked_data = data.groupby([z_axis, x_axis])[y_axis].sum().unstack()
+                    plt.figure(figsize=(10, 6))
+                    stacked_data.plot(kind='barh', stacked=True)
+                    plt.title(f'Stacked Column Chart of {y_axis} vs {x_axis} grouped by {z_axis}')
+                    plt.ylabel(x_axis)
+                    plt.xlabel(y_axis)
+                    st.pyplot(plt)
                         
             # Hypothesis Testing
         elif analysis_option == "Hypothesis Testing":
