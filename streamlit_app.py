@@ -90,8 +90,7 @@ elif choice == "Upload Your Data":
             "Summary Statistics",
             "Plot One Variable",
             "Plot Two Variables",
-            "Plot Three Variables",
-            "AI Analysis"
+            "Plot Three Variables"
         ])
 
         # General filter
@@ -109,16 +108,11 @@ elif choice == "Upload Your Data":
         # Plot One Variable
         elif analysis_option == "Plot One Variable":
             st.subheader("Plot One Variable")
-            st.write("Select a variable to visualize. Choose a numerical or categorical variable.")
             feature = st.selectbox("Select variable to plot:", data.columns)
 
-            if data[feature].dtype in [np.number, 'float64', 'int64']:
+            if np.issubdtype(data[feature].dtype, np.number):
                 st.write("### Numerical Variable Options")
-                plot_type = st.selectbox("Select plot type:", [
-                    "Histogram",
-                    "Box Plot"
-                ])
-
+                plot_type = st.selectbox("Select plot type:", ["Histogram", "Box Plot"])
                 plt.figure(figsize=(10, 6))
 
                 if plot_type == "Histogram":
@@ -133,11 +127,7 @@ elif choice == "Upload Your Data":
 
             else:
                 st.write("### Categorical Variable Options")
-                plot_type = st.selectbox("Select plot type:", [
-                    "Bar Chart",
-                    "Pie Chart"
-                ])
-
+                plot_type = st.selectbox("Select plot type:", ["Bar Chart", "Pie Chart"])
                 plt.figure(figsize=(10, 6))
 
                 if plot_type == "Bar Chart":
@@ -155,23 +145,16 @@ elif choice == "Upload Your Data":
         # Plot Two Variables
         elif analysis_option == "Plot Two Variables":
             st.subheader("Plot Two Variables")
-            st.write("Select two variables to visualize their relationship.")
             x_axis = st.selectbox("Select X variable:", data.columns)
             y_axis = st.selectbox("Select Y variable:", data.columns, index=1)
 
-             # Clean the selected features for numerical types
-            data[x_axis] = clean_numeric_column(data, x_axis)
-            data[y_axis] = clean_numeric_column(data, y_axis)
+            # Check the data types of the selected variables
+            x_is_numeric = np.issubdtype(data[x_axis].dtype, np.number)
+            y_is_numeric = np.issubdtype(data[y_axis].dtype, np.number)
 
-            # Grouping options for two variables
-            if data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in [np.number, 'float64', 'int64']:
+            if x_is_numeric and y_is_numeric:
                 st.write("### Two Numerical Variables Options")
-                plot_type = st.selectbox("Select plot type:", [
-                    "Scatter Plot",
-                    "Line Graph",
-                    "Area Chart"
-                ])
-
+                plot_type = st.selectbox("Select plot type:", ["Scatter Plot", "Line Graph", "Area Chart"])
                 plt.figure(figsize=(10, 6))
 
                 if plot_type == "Scatter Plot":
@@ -191,31 +174,26 @@ elif choice == "Upload Your Data":
                     plt.title(f'Area Chart of {y_axis} vs {x_axis}')
                     plt.xlabel(x_axis)
                     plt.ylabel(y_axis)
-                st.pyplot(plt)
-                
-            elif data[x_axis].dtype in [np.number, 'float64', 'int64'] and data[y_axis].dtype in ['object']:
-                st.write("### One Numerical and One Categorical Variable Options")
-                plot_type = st.selectbox("Select plot type:", [
-                    "Bar Chart"
-                ])
 
+                st.pyplot(plt)
+
+            elif x_is_numeric and not y_is_numeric:
+                st.write("### One Numerical and One Categorical Variable Options")
+                plot_type = st.selectbox("Select plot type:", ["Bar Chart"])
                 plt.figure(figsize=(10, 6))
 
                 if plot_type == "Bar Chart":
-                    data.groupby(x_axis)[y_axis].value_counts().unstack().plot(kind='bar')
-                    plt.title(f'Grouped Bar Chart of {y_axis} by {x_axis}')
-                    plt.xlabel(x_axis)
-                    plt.ylabel('Count')
+                    grouped_data = data.groupby(y_axis)[x_axis].mean().sort_values()
+                    grouped_data.plot(kind='bar')
+                    plt.title(f'Bar Chart of {x_axis} by {y_axis}')
+                    plt.xlabel(y_axis)
+                    plt.ylabel(x_axis)
 
                 st.pyplot(plt)
 
-            elif data[x_axis].dtype in ['object'] and data[y_axis].dtype in ['object']:
+            elif not x_is_numeric and not y_is_numeric:
                 st.write("### Two Categorical Variables Options")
-                plot_type = st.selectbox("Select plot type:", [
-                    "Grouped Bar Chart",
-                    "Mosaic Plot"
-                ])
-
+                plot_type = st.selectbox("Select plot type:", ["Grouped Bar Chart", "Mosaic Plot"])
                 plt.figure(figsize=(10, 6))
 
                 if plot_type == "Grouped Bar Chart":
@@ -227,6 +205,7 @@ elif choice == "Upload Your Data":
                 elif plot_type == "Mosaic Plot":
                     mosaic(data, [x_axis, y_axis])
                     plt.title(f'Mosaic Plot of {x_axis} and {y_axis}')
+
                 st.pyplot(plt)
 
         # Plot Three Variables
