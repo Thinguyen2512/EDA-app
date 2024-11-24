@@ -295,152 +295,152 @@ elif choice == "Upload Your Data":
                     plt.xlabel(y_axis)
                     st.pyplot(plt)
                         
-           # Hypothesis Testing
-elif analysis_option == "Hypothesis Testing":
-    st.subheader("Hypothesis Testing")
-    st.write("Choose a statistical test to perform on your dataset.")
+            # Hypothesis Testing
+        elif analysis_option == "Hypothesis Testing":
+            st.subheader("Hypothesis Testing")
+            st.write("Choose a statistical test to perform on your dataset.")
 
-    # Test selection dropdown
-    test_type = st.selectbox(
-        "Select Test Type:",
-        ["t-test", "ANOVA", "Chi-Squared Test", "Linear Regression"]
-    )
+            # Test selection dropdown
+            test_type = st.selectbox(
+                "Select Test Type:",
+                ["t-test", "ANOVA", "Chi-Squared Test", "Linear Regression"]
+            )
 
-    # 1. Independent t-test
-    if test_type == "t-test":
-        st.write("### Independent t-test")
-        num_cols = data.select_dtypes(include=np.number).columns.tolist()
+            # 1. Independent t-test
+            if test_type == "t-test":
+                st.write("### Independent t-test")
+                num_cols = data.select_dtypes(include=np.number).columns.tolist()
 
-        if len(num_cols) >= 2:
-            # Allow user to select numerical columns
-            col1 = st.selectbox("Select the first numerical column:", num_cols)
-            col2 = st.selectbox("Select the second numerical column:", num_cols, index=1)
+                if len(num_cols) >= 2:
+                    # Allow user to select numerical columns
+                    col1 = st.selectbox("Select the first numerical column:", num_cols)
+                    col2 = st.selectbox("Select the second numerical column:", num_cols, index=1)
 
-            # Perform t-test
-            t_stat, p_value = ttest_ind(data[col1].dropna(), data[col2].dropna())
-            st.write(f"**T-statistic:** {t_stat:.4f}")
-            st.write(f"**P-value:** {p_value:.4f}")
+                    # Perform t-test
+                    t_stat, p_value = ttest_ind(data[col1].dropna(), data[col2].dropna())
+                    st.write(f"**T-statistic:** {t_stat:.4f}")
+                    st.write(f"**P-value:** {p_value:.4f}")
 
-            # Interpretation
-            if p_value < 0.05:
-                st.write("**Result:** Reject the null hypothesis (significant difference).")
-            else:
-                st.write("**Result:** Fail to reject the null hypothesis (no significant difference).")
-        else:
-            st.write("Not enough numerical columns available for t-test.")
-
-    # 2. ANOVA
-    elif test_type == "ANOVA":
-        st.write("### One-way ANOVA")
-        cat_cols = data.select_dtypes(include='object').columns.tolist()
-        num_cols = data.select_dtypes(include=np.number).columns.tolist()
-
-        if cat_cols and num_cols:
-            # Select categorical and numerical columns
-            cat_col = st.selectbox("Select the categorical column (group):", cat_cols)
-            num_col = st.selectbox("Select the numerical column (values):", num_cols)
-
-            # Prepare data groups for ANOVA
-            groups = [group[num_col].dropna() for _, group in data.groupby(cat_col)]
-            groups = [group for group in groups if len(group) > 1]  # Filter groups with sufficient data
-
-            if len(groups) > 1:
-                # Perform ANOVA
-                f_stat, p_value = f_oneway(*groups)
-                st.write(f"**F-statistic:** {f_stat:.4f}")
-                st.write(f"**P-value:** {p_value:.4f}")
-
-                # Interpretation
-                if p_value < 0.05:
-                    st.write("**Result:** Reject the null hypothesis (significant differences between groups).")
+                    # Interpretation
+                    if p_value < 0.05:
+                        st.write("**Result:** Reject the null hypothesis (significant difference).")
+                    else:
+                        st.write("**Result:** Fail to reject the null hypothesis (no significant difference).")
                 else:
-                    st.write("**Result:** Fail to reject the null hypothesis (no significant differences).")
-            else:
-                st.write("Not enough valid groups for ANOVA. Ensure at least two groups have data.")
-        else:
-            st.write("Not enough categorical or numerical columns for ANOVA.")
+                    st.write("Not enough numerical columns available for t-test.")
 
-    # 3. Chi-Squared Test
-    elif test_type == "Chi-Squared Test":
-        st.write("### Chi-Squared Test for Independence")
-        cat_cols = data.select_dtypes(include='object').columns.tolist()
+            # 2. ANOVA
+            elif test_type == "ANOVA":
+                st.write("### One-way ANOVA")
+                cat_cols = data.select_dtypes(include='object').columns.tolist()
+                num_cols = data.select_dtypes(include=np.number).columns.tolist()
 
-        if len(cat_cols) >= 2:
-            # Allow user to select categorical columns
-            col1 = st.selectbox("Select the first categorical column:", cat_cols)
-            col2 = st.selectbox("Select the second categorical column:", cat_cols, index=1)
+                if cat_cols and num_cols:
+                    # Select categorical and numerical columns
+                    cat_col = st.selectbox("Select the categorical column (group):", cat_cols)
+                    num_col = st.selectbox("Select the numerical column (values):", num_cols)
 
-            # Create contingency table
-            contingency_table = pd.crosstab(data[col1], data[col2])
-            st.write("Contingency Table:")
-            st.dataframe(contingency_table)
+                    # Prepare data groups for ANOVA
+                    groups = [group[num_col].dropna() for _, group in data.groupby(cat_col)]
+                    groups = [group for group in groups if len(group) > 1]  # Filter groups with sufficient data
 
-            # Perform Chi-squared test
-            chi2, p_value, _, expected = chi2_contingency(contingency_table)
-            st.write(f"**Chi-squared Statistic:** {chi2:.4f}")
-            st.write(f"**P-value:** {p_value:.4f}")
+                    if len(groups) > 1:
+                        # Perform ANOVA
+                        f_stat, p_value = f_oneway(*groups)
+                        st.write(f"**F-statistic:** {f_stat:.4f}")
+                        st.write(f"**P-value:** {p_value:.4f}")
 
-            # Interpretation
-            if p_value < 0.05:
-                st.write("**Result:** Reject the null hypothesis (variables are dependent).")
-            else:
-                st.write("**Result:** Fail to reject the null hypothesis (variables are independent).")
-        else:
-            st.write("Not enough categorical columns for Chi-Squared Test.")
+                        # Interpretation
+                        if p_value < 0.05:
+                            st.write("**Result:** Reject the null hypothesis (significant differences between groups).")
+                        else:
+                            st.write("**Result:** Fail to reject the null hypothesis (no significant differences).")
+                    else:
+                        st.write("Not enough valid groups for ANOVA. Ensure at least two groups have data.")
+                else:
+                    st.write("Not enough categorical or numerical columns for ANOVA.")
 
-    # 4. Linear Regression
-    elif test_type == "Linear Regression":
-        st.write("### Linear Regression")
-        features = st.multiselect("Select input features (X):", data.columns)
-        target = st.selectbox("Select the target variable (y):", data.columns)
+            # 3. Chi-Squared Test
+            elif test_type == "Chi-Squared Test":
+                st.write("### Chi-Squared Test for Independence")
+                cat_cols = data.select_dtypes(include='object').columns.tolist()
 
-        if features and target:
-            st.write(f"**Selected Features:** {features}")
-            st.write(f"**Target Variable:** {target}")
+                if len(cat_cols) >= 2:
+                    # Allow user to select categorical columns
+                    col1 = st.selectbox("Select the first categorical column:", cat_cols)
+                    col2 = st.selectbox("Select the second categorical column:", cat_cols, index=1)
 
-            # Convert data to numeric and drop NaN values
-            X = data[features].apply(pd.to_numeric, errors='coerce')
-            y = pd.to_numeric(data[target], errors='coerce')
-            X, y = X.dropna(), y.dropna()  # Drop missing values
-            X, y = X.loc[y.index], y.loc[X.index]  # Align indices
+                    # Create contingency table
+                    contingency_table = pd.crosstab(data[col1], data[col2])
+                    st.write("Contingency Table:")
+                    st.dataframe(contingency_table)
 
-            if len(X) > 0 and len(y) > 0:
-                # Split data into training and testing sets
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+                    # Perform Chi-squared test
+                    chi2, p_value, _, expected = chi2_contingency(contingency_table)
+                    st.write(f"**Chi-squared Statistic:** {chi2:.4f}")
+                    st.write(f"**P-value:** {p_value:.4f}")
 
-                # Model selection
-                model_choice = st.selectbox("Select the model:", ["Linear Regression", "Decision Tree", "Random Forest"])
-                if model_choice == "Linear Regression":
-                    from sklearn.linear_model import LinearRegression
-                    model = LinearRegression()
-                elif model_choice == "Decision Tree":
-                    from sklearn.tree import DecisionTreeRegressor
-                    model = DecisionTreeRegressor()
-                elif model_choice == "Random Forest":
-                    from sklearn.ensemble import RandomForestRegressor
-                    model = RandomForestRegressor()
+                    # Interpretation
+                    if p_value < 0.05:
+                        st.write("**Result:** Reject the null hypothesis (variables are dependent).")
+                    else:
+                        st.write("**Result:** Fail to reject the null hypothesis (variables are independent).")
+                else:
+                    st.write("Not enough categorical columns for Chi-Squared Test.")
 
-                # Train the model
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_test)
+            # 4. Linear Regression
+            elif test_type == "Linear Regression":
+                st.write("### Linear Regression")
+                features = st.multiselect("Select input features (X):", data.columns)
+                target = st.selectbox("Select the target variable (y):", data.columns)
 
-                # Evaluation metrics
-                mse = mean_squared_error(y_test, y_pred)
-                r2 = r2_score(y_test, y_pred)
-                st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
-                st.write(f"**R-squared (R²):** {r2:.2f}")
+                if features and target:
+                    st.write(f"**Selected Features:** {features}")
+                    st.write(f"**Target Variable:** {target}")
 
-                # Visualization
-                st.subheader("Prediction vs Actual")
-                fig, ax = plt.subplots()
-                ax.scatter(y_test, y_pred, alpha=0.5)
-                ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
-                ax.set_xlabel("Actual")
-                ax.set_ylabel("Predicted")
-                plt.title("Prediction vs Actual")
-                st.pyplot(fig)
-            else:
-                st.write("Not enough data to train the model.")
+                    # Convert data to numeric and drop NaN values
+                    X = data[features].apply(pd.to_numeric, errors='coerce')
+                    y = pd.to_numeric(data[target], errors='coerce')
+                    X, y = X.dropna(), y.dropna()  # Drop missing values
+                    X, y = X.loc[y.index], y.loc[X.index]  # Align indices
+
+                    if len(X) > 0 and len(y) > 0:
+                        # Split data into training and testing sets
+                        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+                        # Model selection
+                        model_choice = st.selectbox("Select the model:", ["Linear Regression", "Decision Tree", "Random Forest"])
+                        if model_choice == "Linear Regression":
+                            from sklearn.linear_model import LinearRegression
+                            model = LinearRegression()
+                        elif model_choice == "Decision Tree":
+                            from sklearn.tree import DecisionTreeRegressor
+                            model = DecisionTreeRegressor()
+                        elif model_choice == "Random Forest":
+                            from sklearn.ensemble import RandomForestRegressor
+                            model = RandomForestRegressor()
+
+                        # Train the model
+                        model.fit(X_train, y_train)
+                        y_pred = model.predict(X_test)
+
+                        # Evaluation metrics
+                        mse = mean_squared_error(y_test, y_pred)
+                        r2 = r2_score(y_test, y_pred)
+                        st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
+                        st.write(f"**R-squared (R²):** {r2:.2f}")
+
+                        # Visualization
+                        st.subheader("Prediction vs Actual")
+                        fig, ax = plt.subplots()
+                        ax.scatter(y_test, y_pred, alpha=0.5)
+                        ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+                        ax.set_xlabel("Actual")
+                        ax.set_ylabel("Predicted")
+                        plt.title("Prediction vs Actual")
+                        st.pyplot(fig)
+                    else:
+                        st.write("Not enough data to train the model.")
                 
         # AI Analysis Placeholder (Optional)
         elif analysis_option == "AI Analysis":
