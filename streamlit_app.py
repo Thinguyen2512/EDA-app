@@ -90,7 +90,9 @@ elif choice == "Upload Your Data":
             "Summary Statistics",
             "Plot One Variable",
             "Plot Two Variables",
-            "Plot Three Variables"
+            "Plot Three Variables",
+            "Hypothesis Testing",
+            "AI Analysis"
         ])
 
         # General filter
