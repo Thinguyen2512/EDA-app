@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 import io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+import uuid 
 
 # Helper function to save plot as JPG
 def save_plot_as_jpg(fig):
