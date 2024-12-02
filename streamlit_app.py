@@ -32,28 +32,32 @@ def save_plot_as_jpg(fig):
 
 # Function for combined variable comparison
 def plot_combined_comparison(data, selected_columns, plot_type):
-    # Create a figure with multiple subplots (one for each variable)
-    plt.figure(figsize=(12, len(selected_columns) * 4))  # Adjust figure height dynamically based on number of variables
+    # Create the figure with 1 row and 2 columns (one for each plot)
+    fig, axes = plt.subplots(1, 2, figsize=(15, 6), gridspec_kw={'width_ratios': [2, 1]})
     
+    # Plot density plot in the first axis (left plot)
     if plot_type == "Density Plot":
-        # Create a subplot for each variable
         for idx, col in enumerate(selected_columns):
-            if np.issubdtype(data[col].dtype, np.number):  # Check if the column is numeric
-                plt.subplot(len(selected_columns), 1, idx + 1)  # Create subplot for each variable
-                sns.kdeplot(data[col], label=col, shade=True, alpha=0.6)
-                plt.title(f'Density Plot of {col}')
-                plt.xlabel("Values")
-                plt.ylabel("Density")
-                plt.legend(title="Variables")
-    
-    elif plot_type == "Boxplot":
-        sns.boxplot(data=data[selected_columns], orient="h")
-        plt.title("Combined Box Plot")
-        plt.xlabel("Values")
-        plt.ylabel("Variables")
+            if np.issubdtype(data[col].dtype, np.number):  # Ensure it's numeric
+                sns.kdeplot(data[col], ax=axes[0], label=col, shade=True, alpha=0.6)
+        
+        axes[0].set_title('Density Plot of Variables')
+        axes[0].set_xlabel('Depression scores')
+        axes[0].set_ylabel('Density')
+        axes[0].legend(title="Age Groups")
 
-    # Show the plots
-    st.pyplot(plt)
+    # Plot boxplot in the second axis (right plot)
+    if plot_type == "Boxplot":
+        sns.boxplot(data=data[selected_columns], ax=axes[1], orient="h")
+        axes[1].set_title('Boxplot of Variables')
+        axes[1].set_xlabel('Depression scores')
+        axes[1].set_ylabel('Age')
+
+    # Adjust layout
+    plt.tight_layout()
+    
+    # Show the plot
+    st.pyplot(fig)
 
 # Helper function to generate valid filenames
 def generate_valid_filename(name):
