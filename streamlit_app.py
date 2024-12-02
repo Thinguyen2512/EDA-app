@@ -154,17 +154,17 @@ elif choice == "Upload Your Data":
 
             st.pyplot(plt)
 
-        # Add a button to download the plot as JPG
+        # Button to download the plot as JPG
             if st.button("Download Plot as JPG"):
-                # Generate a unique key for the button to avoid duplicates
+                # Save the plot as JPG using the helper function
                 unique_key = str(uuid.uuid4())  # Generate a unique key
-                buf = save_plot_as_jpg(plt.gcf())
+                buf = save_plot_as_jpg(plt.gcf())  # Save the current figure as JPG
                 st.download_button(
                     label="Download JPG",
                     data=buf,
                     file_name=f"{feature}_plot.jpg",
                     mime="image/jpeg",
-                    key=unique_key  # Ensure the key is unique
+                    key=unique_key  # Ensure the key is unique for each download
                 )
 
 
@@ -234,18 +234,19 @@ elif choice == "Upload Your Data":
 
                 st.pyplot(plt)
 
-        # Add a button to download the plot as JPG
+        # Button to download the plot as JPG
             if st.button("Download Plot as JPG"):
-                # Generate a unique key for the button to avoid duplicates
+                # Save the plot as JPG using the helper function
                 unique_key = str(uuid.uuid4())  # Generate a unique key
-                buf = save_plot_as_jpg(plt.gcf())
+                buf = save_plot_as_jpg(plt.gcf())  # Save the current figure as JPG
                 st.download_button(
                     label="Download JPG",
                     data=buf,
                     file_name=f"{feature}_plot.jpg",
                     mime="image/jpeg",
-                    key=unique_key  # Ensure the key is unique
+                    key=unique_key  # Ensure the key is unique for each download
                 )
+                
         # Plot Three Variables
         elif analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
@@ -331,17 +332,17 @@ elif choice == "Upload Your Data":
                     plt.xlabel(y_axis)
                     st.pyplot(plt)
 
-        # Add a button to download the plot as JPG
+        # Button to download the plot as JPG
             if st.button("Download Plot as JPG"):
-                # Generate a unique key for the button to avoid duplicates
+                # Save the plot as JPG using the helper function
                 unique_key = str(uuid.uuid4())  # Generate a unique key
-                buf = save_plot_as_jpg(plt.gcf())
+                buf = save_plot_as_jpg(plt.gcf())  # Save the current figure as JPG
                 st.download_button(
                     label="Download JPG",
                     data=buf,
                     file_name=f"{feature}_plot.jpg",
                     mime="image/jpeg",
-                    key=unique_key  # Ensure the key is unique
+                    key=unique_key  # Ensure the key is unique for each download
                 )
                         
             # Hypothesis Testing
