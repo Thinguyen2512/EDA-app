@@ -158,19 +158,17 @@ elif choice == "Upload Your Data":
 
             st.pyplot(plt)
 
-        # Button to download the plot as JPG
+            # Add a button to download the plot as JPG
             if st.button("Download Plot as JPG"):
-                # Save the plot as JPG using the helper function
-                unique_key = str(uuid.uuid4())  # Generate a unique key
-                buf = save_plot_as_jpg(plt.gcf())  # Save the current figure as JPG
+                valid_feature_name = generate_valid_filename(feature)  # Ensure valid filename
+                buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
                     data=buf,
-                    file_name=f"{feature}_plot.jpg",
+                    file_name=f"{valid_feature_name}_plot.jpg",  # Use valid file name
                     mime="image/jpeg",
-                    key=unique_key  # Ensure the key is unique for each download
+                    key=str(uuid.uuid4())  # Ensure the key is unique
                 )
-
 
         # Plot Two Variables
         elif analysis_option == "Plot Two Variables":
@@ -178,7 +176,6 @@ elif choice == "Upload Your Data":
             x_axis = st.selectbox("Select X variable:", data.columns)
             y_axis = st.selectbox("Select Y variable:", data.columns, index=1)
 
-            # Check the data types of the selected variables
             x_is_numeric = np.issubdtype(data[x_axis].dtype, np.number)
             y_is_numeric = np.issubdtype(data[y_axis].dtype, np.number)
 
@@ -228,7 +225,7 @@ elif choice == "Upload Your Data":
 
                 if plot_type == "Grouped Bar Chart":
                     data.groupby([x_axis, y_axis]).size().unstack().plot(kind='bar', stacked=True)
-                    plt.title(f'Grouped Bar Chart of {y_axis} by {x_axis}')
+                    plt.title(f'Grouped Bar Chart of {x_axis} and {y_axis}')
                     plt.xlabel(x_axis)
                     plt.ylabel('Count')
 
@@ -238,116 +235,52 @@ elif choice == "Upload Your Data":
 
                 st.pyplot(plt)
 
-        # Button to download the plot as JPG
+            # Add a button to download the plot as JPG
             if st.button("Download Plot as JPG"):
-                # Save the plot as JPG using the helper function
-                unique_key = str(uuid.uuid4())  # Generate a unique key
-                buf = save_plot_as_jpg(plt.gcf())  # Save the current figure as JPG
+                valid_feature_name = generate_valid_filename(f"{x_axis}_vs_{y_axis}")  # Ensure valid filename
+                buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
                     data=buf,
-                    file_name=f"{feature}_plot.jpg",
+                    file_name=f"{valid_feature_name}_plot.jpg",  # Use valid file name
                     mime="image/jpeg",
-                    key=unique_key  # Ensure the key is unique for each download
+                    key=str(uuid.uuid4())  # Ensure the key is unique
                 )
-                
-        # Plot Three Variables
+
+        # Plot Three Variables (3D scatter plot)
         elif analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
-            st.write("Select variables to visualize and assign them to the X, Y, and Z axes.")
+            x_axis = st.selectbox("Select X variable:", data.columns)
+            y_axis = st.selectbox("Select Y variable:", data.columns, index=1)
+            z_axis = st.selectbox("Select Z variable:", data.columns, index=2)
 
-            x_axis = st.selectbox("Select variable for X axis:", data.columns)
-            y_axis = st.selectbox("Select variable for Y axis:", data.columns, index=1)
-            z_axis = st.selectbox("Select variable for Z axis (e.g., size, color, or value):", data.columns, index=2)
+            if np.issubdtype(data[x_axis].dtype, np.number) and np.issubdtype(data[y_axis].dtype, np.number) and np.issubdtype(data[z_axis].dtype, np.number):
+                st.write("### Three Numerical Variables Options")
+                plot_type = st.selectbox("Select plot type:", ["3D Scatter Plot"])
+                fig = plt.figure(figsize=(10, 6))
+                ax = fig.add_subplot(111, projection='3d')
 
-            x_is_numeric = np.issubdtype(data[x_axis].dtype, np.number)
-            y_is_numeric = np.issubdtype(data[y_axis].dtype, np.number)
-            z_is_numeric = np.issubdtype(data[z_axis].dtype, np.number)
-
-            if x_is_numeric and y_is_numeric and z_is_numeric:
-                st.write("### All Variables Are Numerical")
-                plot_choice = st.selectbox("Select plot type:", ["3D Scatter Plot", "Contour Plot", "Bubble Chart"])
-
-                if plot_choice == "3D Scatter Plot":
-                    fig = plt.figure(figsize=(10, 6))
-                    ax = fig.add_subplot(111, projection='3d')
+                if plot_type == "3D Scatter Plot":
                     ax.scatter(data[x_axis], data[y_axis], data[z_axis])
                     ax.set_xlabel(x_axis)
                     ax.set_ylabel(y_axis)
                     ax.set_zlabel(z_axis)
-                    plt.title('3D Scatter Plot of Selected Variables')
-                    st.pyplot(fig)
+                    ax.set_title(f'3D Scatter Plot of {x_axis}, {y_axis}, and {z_axis}')
 
-                elif plot_choice == "Contour Plot":
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    x = data[x_axis].dropna().values
-                    y = data[y_axis].dropna().values
-                    z = data[z_axis].dropna().values
-                    X, Y = np.meshgrid(np.linspace(min(x), max(x), 100), np.linspace(min(y), max(y), 100))
-                    Z = griddata((x, y), z, (X, Y), method='linear')
-                    contour = ax.contourf(X, Y, Z, cmap='coolwarm')
-                    plt.colorbar(contour, ax=ax)
-                    ax.set_xlabel(x_axis)
-                    ax.set_ylabel(y_axis)
-                    plt.title(f'Contour Plot of {z_axis} by {x_axis} and {y_axis}')
-                    st.pyplot(fig)
+                st.pyplot(fig)
 
-                elif plot_choice == "Bubble Chart":
-                    fig, ax = plt.subplots(figsize=(10, 6))
-                    scatter = ax.scatter(data[x_axis], data[y_axis], s=data[z_axis]*10, alpha=0.6, c=data[z_axis], cmap='coolwarm', edgecolors='w')
-                    plt.colorbar(scatter, ax=ax, label=z_axis)
-                    ax.set_xlabel(x_axis)
-                    ax.set_ylabel(y_axis)
-                    plt.title(f'Bubble Chart of {y_axis} vs {x_axis} with Size by {z_axis}')
-                    st.pyplot(fig)
-
-            elif not x_is_numeric and not y_is_numeric and z_is_numeric:
-                st.write("### Two Categorical Variables and One Numerical Variable")
-                plot_choice = st.selectbox("Select plot type:", ["Grid Plot (Heatmap)"])
-
-                if plot_choice == "Grid Plot (Heatmap)":
-                    grid_data = data.pivot_table(values=z_axis, index=x_axis, columns=y_axis, aggfunc='mean')
-                    plt.figure(figsize=(10, 6))
-                    sns.heatmap(grid_data, annot=True, cmap="coolwarm", fmt=".1f")
-                    plt.title(f'Heatmap of {z_axis} by {x_axis} and {y_axis}')
-                    plt.xlabel(y_axis)
-                    plt.ylabel(x_axis)
-                    st.pyplot(plt)
-
-            elif x_is_numeric and y_is_numeric and not z_is_numeric:
-                st.write("### Two Numerical Variables and One Categorical Variable")
-                plot_choice = st.selectbox("Select plot type:", ["Stacked Bar Chart", "Stacked Column Chart"])
-
-                if plot_choice == "Stacked Bar Chart":
-                    stacked_data = data.groupby([z_axis, x_axis])[y_axis].sum().unstack()
-                    plt.figure(figsize=(10, 6))
-                    stacked_data.plot(kind='bar', stacked=True)
-                    plt.title(f'Stacked Bar Chart of {y_axis} vs {x_axis} grouped by {z_axis}')
-                    plt.xlabel(x_axis)
-                    plt.ylabel(y_axis)
-                    st.pyplot(plt)
-
-                elif plot_choice == "Stacked Column Chart":
-                    stacked_data = data.groupby([z_axis, x_axis])[y_axis].sum().unstack()
-                    plt.figure(figsize=(10, 6))
-                    stacked_data.plot(kind='barh', stacked=True)
-                    plt.title(f'Stacked Column Chart of {y_axis} vs {x_axis} grouped by {z_axis}')
-                    plt.ylabel(x_axis)
-                    plt.xlabel(y_axis)
-                    st.pyplot(plt)
-
-        # Button to download the plot as JPG
+            # Add a button to download the plot as JPG
             if st.button("Download Plot as JPG"):
-                # Save the plot as JPG using the helper function
-                unique_key = str(uuid.uuid4())  # Generate a unique key
-                buf = save_plot_as_jpg(plt.gcf())  # Save the current figure as JPG
+                valid_feature_name = generate_valid_filename(f"{x_axis}_vs_{y_axis}_vs_{z_axis}")  # Ensure valid filename
+                buf = save_plot_as_jpg(fig)
                 st.download_button(
                     label="Download JPG",
                     data=buf,
-                    file_name=f"{feature}_plot.jpg",
+                    file_name=f"{valid_feature_name}_plot.jpg",  # Use valid file name
                     mime="image/jpeg",
-                    key=unique_key  # Ensure the key is unique for each download
+                    key=str(uuid.uuid4())  # Ensure the key is unique
                 )
+
                         
             # Hypothesis Testing
         elif analysis_option == "Hypothesis Testing":
