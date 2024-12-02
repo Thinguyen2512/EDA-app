@@ -153,7 +153,9 @@ elif choice == "Upload Your Data":
 
             st.pyplot(plt)
 
-        if st.button("Download Plot as JPG", key=f"download_{feature}_plot"):
+        # Add a button to download the plot as JPG
+            unique_key = str(uuid.uuid4())  # Generate a unique key
+            if st.button("Download Plot as JPG", key=unique_key):
                 buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
@@ -229,7 +231,9 @@ elif choice == "Upload Your Data":
 
                 st.pyplot(plt)
 
-        if st.button("Download Plot as JPG", key=f"download_{feature}_plot"):
+        # Add a button to download the plot as JPG
+            unique_key = str(uuid.uuid4())  # Generate a unique key
+            if st.button("Download Plot as JPG", key=unique_key):
                 buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
@@ -323,7 +327,9 @@ elif choice == "Upload Your Data":
                     plt.xlabel(y_axis)
                     st.pyplot(plt)
 
-        if st.button("Download Plot as JPG", key=f"download_{feature}_plot"):
+        # Add a button to download the plot as JPG
+            unique_key = str(uuid.uuid4())  # Generate a unique key
+            if st.button("Download Plot as JPG", key=unique_key):
                 buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
