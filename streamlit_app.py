@@ -381,30 +381,48 @@ elif choice == "Upload Your Data":
                     key=str(uuid.uuid4())  # Ensure the key is unique
                 )
 
-        if analysis_option == "Feature Comparison":
-            st.subheader("Feature Comparison")
+        # Variables Comparison
+        elif analysis_option == "Variables Comparison":
+            st.subheader("Variables Comparison")
+            
             # Allow user to select multiple features to compare
             selected_columns = st.multiselect("Select variables to compare", data.columns)
             
             if len(selected_columns) > 0:
-                # Plotting comparison using pairplot or a similar comparison method
+                # Show selected columns
                 st.write(f"Comparing {', '.join(selected_columns)}")
                 
-                # Generate a pairplot for the selected variables
-                comparison_data = data[selected_columns].dropna()  # Drop any rows with missing values
-                fig = sns.pairplot(comparison_data)
-                st.pyplot(fig)
+                # Create plots for selected features
+                plot_type = st.selectbox("Select plot type", ["Histogram", "Density Plot", "Boxplot"])
                 
-                # Alternatively, you could create subplots for a more customized view
-                # Example using subplots
-                fig, axs = plt.subplots(len(selected_columns), len(selected_columns), figsize=(10, 8))
-                for i, col1 in enumerate(selected_columns):
-                    for j, col2 in enumerate(selected_columns):
-                        axs[i, j].scatter(data[col1], data[col2], alpha=0.5)
-                        axs[i, j].set_xlabel(col1)
-                        axs[i, j].set_ylabel(col2)
-                st.pyplot(fig)
+                if plot_type == "Histogram":
+                    for col in selected_columns:
+                        if np.issubdtype(data[col].dtype, np.number):  # Ensure the column is numeric
+                            plt.figure(figsize=(10, 6))
+                            sns.histplot(data[col], kde=True)
+                            plt.title(f'Histogram of {col}')
+                            plt.xlabel(col)
+                            plt.ylabel('Frequency')
+                            st.pyplot(plt)
 
+                elif plot_type == "Density Plot":
+                    for col in selected_columns:
+                        if np.issubdtype(data[col].dtype, np.number):  # Ensure the column is numeric
+                            plt.figure(figsize=(10, 6))
+                            sns.kdeplot(data[col], shade=True)
+                            plt.title(f'Density Plot of {col}')
+                            plt.xlabel(col)
+                            plt.ylabel('Density')
+                            st.pyplot(plt)
+
+                elif plot_type == "Boxplot":
+                    for col in selected_columns:
+                        if np.issubdtype(data[col].dtype, np.number):  # Ensure the column is numeric
+                            plt.figure(figsize=(10, 6))
+                            sns.boxplot(x=data[col])
+                            plt.title(f'Boxplot of {col}')
+                            plt.xlabel(col)
+                            st.pyplot(plt)
                         
             # Hypothesis Testing
         elif analysis_option == "Hypothesis Testing":
