@@ -22,6 +22,10 @@ def save_plot_as_jpg(fig):
     buf.seek(0)
     return buf
 
+# Helper function to generate valid filenames
+def generate_valid_filename(name):
+    return ''.join(e if e.isalnum() else '_' for e in name)
+
 # Custom CSS for styling
 st.markdown(
     """
