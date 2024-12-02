@@ -396,7 +396,7 @@ elif choice == "Upload Your Data":
                     reference_value = st.number_input("Enter the reference value (e.g., population mean):", value=0)
 
                     # Perform t-test
-                    t_stat, p_value = ttest_ind(data[column].dropna(), reference_value)
+                    t_stat, p_value = ttest_1samp(data[column].dropna(), reference_value)
                     st.write(f"**T-statistic:** {t_stat:.4f}")
                     st.write(f"**P-value:** {p_value:.4f}")
 
@@ -439,7 +439,7 @@ elif choice == "Upload Your Data":
                         st.write("The selected categorical column does not have exactly two groups, which are required for a two-sample t-test.")
                 else:
                     st.write("Not enough categorical or numerical columns for two-sample t-test.")
-                    
+
             # 3. ANOVA
             elif test_type == "ANOVA":
                 st.write("### One-way ANOVA")
@@ -448,56 +448,48 @@ elif choice == "Upload Your Data":
 
                 if cat_cols and num_cols:
                     # Select categorical and numerical columns
-                    cat_col = st.selectbox("Select the categorical column (group):", cat_cols)
-                    num_col = st.selectbox("Select the numerical column (values):", num_cols)
+                    group_col = st.selectbox("Select the categorical column (group):", cat_cols)
+                    column = st.selectbox("Select the numerical column:", num_cols)
 
-                    # Prepare data groups for ANOVA
-                    groups = [group[num_col].dropna() for _, group in data.groupby(cat_col)]
-                    groups = [group for group in groups if len(group) > 1]  # Filter groups with sufficient data
+                    # Perform ANOVA
+                    grouped_data = [data[data[group_col] == group][column].dropna() for group in data[group_col].unique()]
+                    f_stat, p_value = f_oneway(*grouped_data)
+                    st.write(f"**F-statistic:** {f_stat:.4f}")
+                    st.write(f"**P-value:** {p_value:.4f}")
 
-                    if len(groups) > 1:
-                        # Perform ANOVA
-                        f_stat, p_value = f_oneway(*groups)
-                        st.write(f"**F-statistic:** {f_stat:.4f}")
-                        st.write(f"**P-value:** {p_value:.4f}")
-
-                        # Interpretation
-                        if p_value < 0.05:
-                            st.write("**Result:** Reject the null hypothesis (significant differences between groups).")
-                        else:
-                            st.write("**Result:** Fail to reject the null hypothesis (no significant differences).")
+                    # Interpretation
+                    if p_value < 0.05:
+                        st.write("**Result:** Reject the null hypothesis (the means of the groups are significantly different).")
                     else:
-                        st.write("Not enough valid groups for ANOVA. Ensure at least two groups have data.")
+                        st.write("**Result:** Fail to reject the null hypothesis (no significant difference between the groups).")
                 else:
                     st.write("Not enough categorical or numerical columns for ANOVA.")
 
             # 4. Chi-Squared Test
             elif test_type == "Chi-Squared Test":
-                st.write("### Chi-Squared Test for Independence")
+                st.write("### Chi-Squared Test")
                 cat_cols = data.select_dtypes(include='object').columns.tolist()
 
-                if len(cat_cols) >= 2:
-                    # Allow user to select categorical columns
+                if len(cat_cols) > 1:
+                    # Select two categorical columns for chi-squared test
                     col1 = st.selectbox("Select the first categorical column:", cat_cols)
-                    col2 = st.selectbox("Select the second categorical column:", cat_cols, index=1)
-
-                    # Create contingency table
+                    col2 = st.selectbox("Select the second categorical column:", cat_cols)
+                    
+                    # Generate contingency table
                     contingency_table = pd.crosstab(data[col1], data[col2])
-                    st.write("Contingency Table:")
-                    st.dataframe(contingency_table)
 
-                    # Perform Chi-squared test
-                    chi2, p_value, _, expected = chi2_contingency(contingency_table)
-                    st.write(f"**Chi-squared Statistic:** {chi2:.4f}")
+                    chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table)
+                    st.write(f"**Chi2 Statistic:** {chi2_stat:.4f}")
                     st.write(f"**P-value:** {p_value:.4f}")
+                    st.write(f"**Degrees of Freedom:** {dof}")
 
                     # Interpretation
                     if p_value < 0.05:
-                        st.write("**Result:** Reject the null hypothesis (variables are dependent).")
+                        st.write("**Result:** Reject the null hypothesis (there is an association between the two categorical variables).")
                     else:
-                        st.write("**Result:** Fail to reject the null hypothesis (variables are independent).")
+                        st.write("**Result:** Fail to reject the null hypothesis (no significant association between the two variables).")
                 else:
-                    st.write("Not enough categorical columns for Chi-Squared Test.")
+                    st.write("Not enough categorical columns for chi-squared test.")
 
             # 5. Linear Regression
             elif test_type == "Linear Regression":
