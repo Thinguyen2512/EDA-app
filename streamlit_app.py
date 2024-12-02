@@ -499,59 +499,47 @@ elif choice == "Upload Your Data":
                 else:
                     st.write("Not enough categorical columns for Chi-Squared Test.")
 
-            # 5. Linear Regression
-            elif test_type == "Linear Regression":
-                st.write("### Linear Regression")
-                features = st.multiselect("Select input features (X):", data.columns)
-                target = st.selectbox("Select the target variable (y):", data.columns)
+            # Linear Regression
+    elif analysis_option == "Linear Regression":
+        st.subheader("Linear Regression")
+        features = st.multiselect("Select Input Features (X):", data.columns)
+        target = st.selectbox("Select Target Variable (y):", data.columns)
 
-                if features and target:
-                    st.write(f"**Selected Features:** {features}")
-                    st.write(f"**Target Variable:** {target}")
+        if features and target:
+            X = data[features].apply(pd.to_numeric, errors='coerce').dropna()
+            y = pd.to_numeric(data[target], errors='coerce').dropna()
+            aligned_data = pd.concat([X, y], axis=1).dropna()
+            X = aligned_data[features]
+            y = aligned_data[target]
 
-                    # Convert data to numeric and drop NaN values
-                    X = data[features].apply(pd.to_numeric, errors='coerce')
-                    y = pd.to_numeric(data[target], errors='coerce')
-                    X, y = X.dropna(), y.dropna()  # Drop missing values
-                    X, y = X.loc[y.index], y.loc[X.index]  # Align indices
+            if len(X) > 1 and len(y) > 1:
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+                model_choice = st.selectbox("Select Model", ["Linear Regression", "Decision Tree", "Random Forest"])
+                if model_choice == "Linear Regression":
+                    model = LinearRegression()
+                elif model_choice == "Decision Tree":
+                    model = DecisionTreeRegressor()
+                else:
+                    model = RandomForestRegressor()
 
-                    if len(X) > 0 and len(y) > 0:
-                        # Split data into training and testing sets
-                        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+                model.fit(X_train, y_train)
+                y_pred = model.predict(X_test)
+                mse = mean_squared_error(y_test, y_pred)
+                r2 = r2_score(y_test, y_pred)
+                st.write(f"MSE: {mse:.2f}, R²: {r2:.2f}")
 
-                        # Model selection
-                        model_choice = st.selectbox("Select the model:", ["Linear Regression", "Decision Tree", "Random Forest"])
-                        if model_choice == "Linear Regression":
-                            from sklearn.linear_model import LinearRegression
-                            model = LinearRegression()
-                        elif model_choice == "Decision Tree":
-                            from sklearn.tree import DecisionTreeRegressor
-                            model = DecisionTreeRegressor()
-                        elif model_choice == "Random Forest":
-                            from sklearn.ensemble import RandomForestRegressor
-                            model = RandomForestRegressor()
+                if r2 < 0:
+                    st.warning("Model fits worse than a mean predictor. Check data and features.")
 
-                        # Train the model
-                        model.fit(X_train, y_train)
-                        y_pred = model.predict(X_test)
-
-                        # Evaluation metrics
-                        mse = mean_squared_error(y_test, y_pred)
-                        r2 = r2_score(y_test, y_pred)
-                        st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
-                        st.write(f"**R-squared (R²):** {r2:.2f}")
-
-                        # Visualization
-                        st.subheader("Prediction vs Actual")
-                        fig, ax = plt.subplots()
-                        ax.scatter(y_test, y_pred, alpha=0.5)
-                        ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
-                        ax.set_xlabel("Actual")
-                        ax.set_ylabel("Predicted")
-                        plt.title("Prediction vs Actual")
-                        st.pyplot(fig)
-                    else:
-                        st.write("Not enough data to train the model.")
+                # Visualization
+                fig, ax = plt.subplots()
+                ax.scatter(y_test, y_pred, alpha=0.5)
+                ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+                ax.set_xlabel("Actual")
+                ax.set_ylabel("Predicted")
+                st.pyplot(fig)
+            else:
+                st.warning("Insufficient data for training.")
                 
         # AI Analysis Placeholder (Optional)
         elif analysis_option == "AI Analysis":
