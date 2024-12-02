@@ -499,47 +499,50 @@ elif choice == "Upload Your Data":
                 else:
                     st.write("Not enough categorical columns for Chi-Squared Test.")
 
-            # Linear Regression
-    elif analysis_option == "Linear Regression":
-        st.subheader("Linear Regression")
-        features = st.multiselect("Select Input Features (X):", data.columns)
-        target = st.selectbox("Select Target Variable (y):", data.columns)
+            # 5. Linear Regression
+            elif test_type == "Linear Regression":
+                st.write("### Linear Regression")
+                num_cols = data.select_dtypes(include=np.number).columns.tolist()
 
-        if features and target:
-            X = data[features].apply(pd.to_numeric, errors='coerce').dropna()
-            y = pd.to_numeric(data[target], errors='coerce').dropna()
-            aligned_data = pd.concat([X, y], axis=1).dropna()
-            X = aligned_data[features]
-            y = aligned_data[target]
+                if len(num_cols) > 1:
+                    # User selects predictor (independent) and response (dependent) variables
+                    X_col = st.selectbox("Select predictor (independent) variable:", num_cols)
+                    Y_col = st.selectbox("Select response (dependent) variable:", num_cols)
 
-            if len(X) > 1 and len(y) > 1:
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-                model_choice = st.selectbox("Select Model", ["Linear Regression", "Decision Tree", "Random Forest"])
-                if model_choice == "Linear Regression":
+                    # Prepare data for training the model
+                    X = data[[X_col]].dropna()
+                    y = data[Y_col].dropna()
+                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+                    # Create and train the Linear Regression model
                     model = LinearRegression()
-                elif model_choice == "Decision Tree":
-                    model = DecisionTreeRegressor()
+                    model.fit(X_train, y_train)
+
+                    # Predict values
+                    y_pred = model.predict(X_test)
+
+                    # Model evaluation
+                    mse = mean_squared_error(y_test, y_pred)
+                    r2 = r2_score(y_test, y_pred)
+
+                    st.write(f"**Mean Squared Error:** {mse:.4f}")
+                    st.write(f"**R-squared:** {r2:.4f}")
+
+                    # Coefficients
+                    st.write(f"**Intercept:** {model.intercept_:.4f}")
+                    st.write(f"**Coefficient for {X_col}:** {model.coef_[0]:.4f}")
+                    
+                    # Plot regression line
+                    plt.figure(figsize=(10, 6))
+                    plt.scatter(X_test, y_test, color="blue", label="Test Data")
+                    plt.plot(X_test, y_pred, color="red", label="Regression Line")
+                    plt.xlabel(X_col)
+                    plt.ylabel(Y_col)
+                    plt.legend()
+                    st.pyplot(plt)
+
                 else:
-                    model = RandomForestRegressor()
-
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_test)
-                mse = mean_squared_error(y_test, y_pred)
-                r2 = r2_score(y_test, y_pred)
-                st.write(f"MSE: {mse:.2f}, R²: {r2:.2f}")
-
-                if r2 < 0:
-                    st.warning("Model fits worse than a mean predictor. Check data and features.")
-
-                # Visualization
-                fig, ax = plt.subplots()
-                ax.scatter(y_test, y_pred, alpha=0.5)
-                ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
-                ax.set_xlabel("Actual")
-                ax.set_ylabel("Predicted")
-                st.pyplot(fig)
-            else:
-                st.warning("Insufficient data for training.")
+                    st.write("Not enough numerical columns for Linear Regression.")
                 
         # AI Analysis Placeholder (Optional)
         elif analysis_option == "AI Analysis":
