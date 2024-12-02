@@ -395,18 +395,27 @@ elif choice == "Upload Your Data":
                     # Provide input for the reference value
                     reference_value = st.number_input("Enter the reference value (e.g., population mean):", value=0)
 
-                    # Perform t-test
-                    t_stat, p_value = ttest_1samp(data[column].dropna(), reference_value)
-                    st.write(f"**T-statistic:** {t_stat:.4f}")
-                    st.write(f"**P-value:** {p_value:.4f}")
+                    # Ensure the selected column is numeric and drop missing values
+                    data[column] = pd.to_numeric(data[column], errors='coerce')  # Convert to numeric
+                    clean_data = data[column].dropna()  # Remove NaNs
 
-                    # Interpretation
-                    if p_value < 0.05:
-                        st.write("**Result:** Reject the null hypothesis (the mean is significantly different from the reference value).")
+                    if len(clean_data) > 0:  # Check if there is enough data to perform the t-test
+                        # Perform t-test
+                        t_stat, p_value = ttest_1samp(clean_data, reference_value)
+                        st.write(f"**T-statistic:** {t_stat:.4f}")
+                        st.write(f"**P-value:** {p_value:.4f}")
+
+                        # Interpretation
+                        if p_value < 0.05:
+                            st.write("**Result:** Reject the null hypothesis (the mean is significantly different from the reference value).")
+                        else:
+                            st.write("**Result:** Fail to reject the null hypothesis (no significant difference from the reference value).")
                     else:
-                        st.write("**Result:** Fail to reject the null hypothesis (no significant difference from the reference value).")
+                        st.write(f"Not enough valid data in the column {column} to perform the t-test.")
                 else:
                     st.write("Not enough numerical columns available for the t-test.")
+
+            # 2. Two-sample t-test
 
             # 2. Two-sample t-test
             elif test_type == "Two-sample t-test":
