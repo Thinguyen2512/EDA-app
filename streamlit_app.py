@@ -130,7 +130,7 @@ elif choice == "Upload Your Data":
                     selected_values = st.sidebar.multiselect(
                         f"Select values for {filter_col}",
                         unique_values,
-                        default=[
+                        default=[]
                 )
                     
                 if selected_values:
