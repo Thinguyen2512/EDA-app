@@ -32,31 +32,28 @@ def save_plot_as_jpg(fig):
 
 # Function for combined variable comparison
 def plot_combined_comparison(data, selected_columns, plot_type):
-    plt.figure(figsize=(12, 6))
-
+    # Create a figure with multiple subplots (one for each variable)
+    plt.figure(figsize=(12, len(selected_columns) * 4))  # Adjust figure height dynamically based on number of variables
+    
     if plot_type == "Density Plot":
-        # Define the initial y-position to stack the density plots
-        y_offset = 0
-        
+        # Create a subplot for each variable
         for idx, col in enumerate(selected_columns):
             if np.issubdtype(data[col].dtype, np.number):  # Check if the column is numeric
-                # Plot each density with an offset in the y-axis to avoid overlap
-                sns.kdeplot(data[col], label=col, shade=True, alpha=0.6, vertical=True)
-                y_offset += 0.5  # Adjust vertical spacing between plots
-        
-        plt.title("Combined Density Plot")
-        plt.xlabel("Values")
-        plt.ylabel("Density")
-        plt.legend(title="Variables", loc="upper right")
-
+                plt.subplot(len(selected_columns), 1, idx + 1)  # Create subplot for each variable
+                sns.kdeplot(data[col], label=col, shade=True, alpha=0.6)
+                plt.title(f'Density Plot of {col}')
+                plt.xlabel("Values")
+                plt.ylabel("Density")
+                plt.legend(title="Variables")
+    
     elif plot_type == "Boxplot":
         sns.boxplot(data=data[selected_columns], orient="h")
         plt.title("Combined Box Plot")
         plt.xlabel("Values")
         plt.ylabel("Variables")
 
+    # Show the plots
     st.pyplot(plt)
-
 
 # Helper function to generate valid filenames
 def generate_valid_filename(name):
