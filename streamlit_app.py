@@ -152,8 +152,8 @@ elif choice == "Upload Your Data":
                     plt.title(f'Pie Chart of {feature}')
 
             st.pyplot(plt)
-            
-            if st.button("Download Plot as JPG"):
+
+        if st.button("Download Plot as JPG"):
                 buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
@@ -228,8 +228,8 @@ elif choice == "Upload Your Data":
                     plt.title(f'Mosaic Plot of {x_axis} and {y_axis}')
 
                 st.pyplot(plt)
-                
-                if st.button("Download Plot as JPG"):
+
+        if st.button("Download Plot as JPG"):
                 buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
@@ -237,7 +237,6 @@ elif choice == "Upload Your Data":
                     file_name=f"{feature}_plot.jpg",
                     mime="image/jpeg"
                 )
-
 
         # Plot Three Variables
         elif analysis_option == "Plot Three Variables":
@@ -323,8 +322,8 @@ elif choice == "Upload Your Data":
                     plt.ylabel(x_axis)
                     plt.xlabel(y_axis)
                     st.pyplot(plt)
-                    
-                    if st.button("Download Plot as JPG"):
+
+        if st.button("Download Plot as JPG"):
                 buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
@@ -332,7 +331,6 @@ elif choice == "Upload Your Data":
                     file_name=f"{feature}_plot.jpg",
                     mime="image/jpeg"
                 )
-
                         
             # Hypothesis Testing
         elif analysis_option == "Hypothesis Testing":
