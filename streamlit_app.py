@@ -14,7 +14,15 @@ from sklearn.metrics import mean_squared_error, r2_score
 import io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import uuid 
+from scipy.stats import ttest_1samp
 
+# Ensure that your column is cleaned and contains valid numeric values
+def clean_and_validate_column(data, column):
+    # Convert to numeric, forcing errors to NaN
+    data[column] = pd.to_numeric(data[column], errors='coerce')
+    clean_data = data[column].dropna()  # Drop NaN values
+    return clean_data
+    
 # Helper function to save plot as JPG
 def save_plot_as_jpg(fig):
     buf = io.BytesIO()
