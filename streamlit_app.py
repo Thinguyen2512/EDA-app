@@ -33,12 +33,17 @@ def save_plot_as_jpg(fig):
 # Function for combined variable comparison
 def plot_combined_comparison(data, selected_columns, plot_type):
     plt.figure(figsize=(12, 6))
-    
+
     if plot_type == "Density Plot":
+        # Define the initial y-position to stack the density plots
+        y_offset = 0
+        
         for idx, col in enumerate(selected_columns):
             if np.issubdtype(data[col].dtype, np.number):  # Check if the column is numeric
-                sns.kdeplot(data[col], label=col, shade=True, alpha=0.6)
-                
+                # Plot each density with an offset in the y-axis to avoid overlap
+                sns.kdeplot(data[col], label=col, shade=True, alpha=0.6, vertical=True)
+                y_offset += 0.5  # Adjust vertical spacing between plots
+        
         plt.title("Combined Density Plot")
         plt.xlabel("Values")
         plt.ylabel("Density")
@@ -51,7 +56,8 @@ def plot_combined_comparison(data, selected_columns, plot_type):
         plt.ylabel("Variables")
 
     st.pyplot(plt)
-    
+
+
 # Helper function to generate valid filenames
 def generate_valid_filename(name):
     return ''.join(e if e.isalnum() else '_' for e in name)
