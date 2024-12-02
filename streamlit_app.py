@@ -399,7 +399,10 @@ elif choice == "Upload Your Data":
                     data[column] = pd.to_numeric(data[column], errors='coerce')  # Convert to numeric
                     clean_data = data[column].dropna()  # Remove NaNs
 
-                    if len(clean_data) > 0:  # Check if there is enough data to perform the t-test
+                    # Check if clean_data is not empty before performing the t-test
+                    if clean_data.empty:
+                        st.write(f"Not enough valid data in the column {column} to perform the t-test.")
+                    else:
                         # Perform t-test
                         t_stat, p_value = ttest_1samp(clean_data, reference_value)
                         st.write(f"**T-statistic:** {t_stat:.4f}")
@@ -410,11 +413,9 @@ elif choice == "Upload Your Data":
                             st.write("**Result:** Reject the null hypothesis (the mean is significantly different from the reference value).")
                         else:
                             st.write("**Result:** Fail to reject the null hypothesis (no significant difference from the reference value).")
-                    else:
-                        st.write(f"Not enough valid data in the column {column} to perform the t-test.")
                 else:
                     st.write("Not enough numerical columns available for the t-test.")
-
+                    
             # 2. Two-sample t-test
 
             # 2. Two-sample t-test
