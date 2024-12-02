@@ -30,12 +30,11 @@ def save_plot_as_jpg(fig):
     buf.seek(0)
     return buf
 
-# Function for combined variable comparison
 def plot_combined_comparison(data, selected_columns, plot_type):
-    # Create the figure with 1 row and 2 columns (one for each plot)
-    fig, axes = plt.subplots(1, 2, figsize=(15, 6), gridspec_kw={'width_ratios': [2, 1]})
+    # Create the figure with 2 rows and 1 column (stacked plots)
+    fig, axes = plt.subplots(2, 1, figsize=(10, 10))
     
-    # Plot density plot in the first axis (left plot)
+    # Plot density plot in the first axis (top plot)
     if plot_type == "Density Plot":
         for idx, col in enumerate(selected_columns):
             if np.issubdtype(data[col].dtype, np.number):  # Ensure it's numeric
@@ -46,7 +45,7 @@ def plot_combined_comparison(data, selected_columns, plot_type):
         axes[0].set_ylabel('Density')
         axes[0].legend(title="Age Groups")
 
-    # Plot boxplot in the second axis (right plot)
+    # Plot boxplot in the second axis (bottom plot)
     if plot_type == "Boxplot":
         sns.boxplot(data=data[selected_columns], ax=axes[1], orient="h")
         axes[1].set_title('Boxplot of Variables')
@@ -58,7 +57,7 @@ def plot_combined_comparison(data, selected_columns, plot_type):
     
     # Show the plot
     st.pyplot(fig)
-
+    
 # Helper function to generate valid filenames
 def generate_valid_filename(name):
     return ''.join(e if e.isalnum() else '_' for e in name)
