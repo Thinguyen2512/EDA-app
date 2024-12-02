@@ -61,7 +61,7 @@ def plot_combined_comparison(data, selected_columns, plot_type):
         plt.ylabel("Variables")
 
     st.pyplot(plt)
-
+    
 # Helper function to generate valid filenames
 def generate_valid_filename(name):
     return ''.join(e if e.isalnum() else '_' for e in name)
@@ -414,14 +414,10 @@ elif choice == "Upload Your Data":
                 )
 
         # Variables Comparison
-    elif analysis_option == "Variables Comparison":
-        st.subheader("Variables Comparison")
-
-        # Select multiple variables to compare
-        selected_columns = st.multiselect("Select variables to compare", data.columns)
-
-        if len(selected_columns) > 0:
-            plot_type = st.selectbox("Select plot type", ["Histogram", "Density Plot", "Boxplot"])
+        elif analysis_option == "Variables Comparison":
+            st.subheader("Variables Comparison")
+            selected_columns = st.multiselect("Select variables for comparison", data.columns.tolist())
+            plot_type = st.selectbox("Select comparison plot type", ["Histogram", "Density Plot", "Boxplot"])
             plot_combined_comparison(data, selected_columns, plot_type)
 
             # Add a button to download the plot as JPG
