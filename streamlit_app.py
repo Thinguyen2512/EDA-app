@@ -109,12 +109,30 @@ elif choice == "Upload Your Data":
             "AI Analysis"
         ])
 
-        # General filter
+        # General filter with multiple options
         filter_col = st.sidebar.selectbox("Filter by Column", ["None"] + data.columns.tolist())
         if filter_col != "None":
-            unique_values = data[filter_col].dropna().unique()
-            filter_value = st.sidebar.selectbox(f"Filter {filter_col} by:", unique_values)
-            data = data[data[filter_col] == filter_value]
+            if pd.api.types.is_numeric_dtype(data[filter_col]):  # Numerical data
+                min_val, max_val = st.sidebar.slider(
+                    f"Select range for {filter_col}",
+                    float(data[filter_col].min()),
+                    float(data[filter_col].max()),
+                    (float(data[filter_col].min()), float(data[filter_col].max()))
+                )
+                data = data[(data[filter_col] >= min_val) & (data[filter_col] <= max_val)]
+            else:  # Categorical data
+                unique_values = data[filter_col].dropna().unique()
+                selected_values = st.sidebar.multiselect(
+                    f"Select values for {filter_col}",
+                    unique_values,
+                    default=unique_values
+                )
+                if selected_values:
+                    data = data[data[filter_col].isin(selected_values)]
+
+        # Display filtered data
+        st.write("Filtered Data:")
+        st.dataframe(data)
             
         # Summary Statistics
         if analysis_option == "Summary Statistics":
