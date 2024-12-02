@@ -30,6 +30,38 @@ def save_plot_as_jpg(fig):
     buf.seek(0)
     return buf
 
+# Function for combined variable comparison
+def plot_combined_comparison(data, selected_columns, plot_type):
+    plt.figure(figsize=(12, 6))
+    
+    if plot_type == "Histogram":
+        for col in selected_columns:
+            if np.issubdtype(data[col].dtype, np.number):  # Check if the column is numeric
+                sns.histplot(data[col], kde=True, label=col, element="step", stat="density", common_norm=False)
+                
+        plt.title("Combined Histogram and Density Plot")
+        plt.xlabel("Values")
+        plt.ylabel("Density")
+        plt.legend(title="Variables")
+
+    elif plot_type == "Density Plot":
+        for col in selected_columns:
+            if np.issubdtype(data[col].dtype, np.number):  # Check if the column is numeric
+                sns.kdeplot(data[col], label=col, shade=True)
+                
+        plt.title("Combined Density Plot")
+        plt.xlabel("Values")
+        plt.ylabel("Density")
+        plt.legend(title="Variables")
+
+    elif plot_type == "Boxplot":
+        sns.boxplot(data=data[selected_columns], orient="h")
+        plt.title("Combined Box Plot")
+        plt.xlabel("Values")
+        plt.ylabel("Variables")
+
+    st.pyplot(plt)
+
 # Helper function to generate valid filenames
 def generate_valid_filename(name):
     return ''.join(e if e.isalnum() else '_' for e in name)
@@ -382,47 +414,26 @@ elif choice == "Upload Your Data":
                 )
 
         # Variables Comparison
-        elif analysis_option == "Variables Comparison":
-            st.subheader("Variables Comparison")
-            
-            # Allow user to select multiple features to compare
-            selected_columns = st.multiselect("Select variables to compare", data.columns)
-            
-            if len(selected_columns) > 0:
-                # Show selected columns
-                st.write(f"Comparing {', '.join(selected_columns)}")
-                
-                # Create plots for selected features
-                plot_type = st.selectbox("Select plot type", ["Histogram", "Density Plot", "Boxplot"])
-                
-                if plot_type == "Histogram":
-                    for col in selected_columns:
-                        if np.issubdtype(data[col].dtype, np.number):  # Ensure the column is numeric
-                            plt.figure(figsize=(10, 6))
-                            sns.histplot(data[col], kde=True)
-                            plt.title(f'Histogram of {col}')
-                            plt.xlabel(col)
-                            plt.ylabel('Frequency')
-                            st.pyplot(plt)
+    elif analysis_option == "Variables Comparison":
+        st.subheader("Variables Comparison")
 
-                elif plot_type == "Density Plot":
-                    for col in selected_columns:
-                        if np.issubdtype(data[col].dtype, np.number):  # Ensure the column is numeric
-                            plt.figure(figsize=(10, 6))
-                            sns.kdeplot(data[col], shade=True)
-                            plt.title(f'Density Plot of {col}')
-                            plt.xlabel(col)
-                            plt.ylabel('Density')
-                            st.pyplot(plt)
+        # Select multiple variables to compare
+        selected_columns = st.multiselect("Select variables to compare", data.columns)
 
-                elif plot_type == "Boxplot":
-                    for col in selected_columns:
-                        if np.issubdtype(data[col].dtype, np.number):  # Ensure the column is numeric
-                            plt.figure(figsize=(10, 6))
-                            sns.boxplot(x=data[col])
-                            plt.title(f'Boxplot of {col}')
-                            plt.xlabel(col)
-                            st.pyplot(plt)
+        if len(selected_columns) > 0:
+            plot_type = st.selectbox("Select plot type", ["Histogram", "Density Plot", "Boxplot"])
+            plot_combined_comparison(data, selected_columns, plot_type)
+
+            # Add a button to download the plot as JPG
+            if st.button("Download Plot as JPG"):
+                valid_feature_name = generate_valid_filename('_'.join(selected_columns))  # Ensure valid filename
+                buf = save_plot_as_jpg(plt.gcf())
+                st.download_button(
+                    label="Download JPG",
+                    data=buf,
+                    file_name=f"{valid_feature_name}_combined_plot.jpg",  # Use valid file name
+                    mime="image/jpeg"
+                )
                         
             # Hypothesis Testing
         elif analysis_option == "Hypothesis Testing":
