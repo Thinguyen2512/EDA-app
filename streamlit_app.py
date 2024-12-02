@@ -122,10 +122,15 @@ elif choice == "Upload Your Data":
                 data = data[(data[filter_col] >= min_val) & (data[filter_col] <= max_val)]
             else:  # Categorical data
                 unique_values = data[filter_col].dropna().unique()
-                selected_values = st.sidebar.multiselect(
-                    f"Select values for {filter_col}",
-                    unique_values,
-                    default=unique_values
+                all_selected = st.sidebar.checkbox(f"Select All {filter_col}", value=True)
+
+                if all_selected:
+                    selected_values = unique_values  # Chọn toàn bộ giá trị
+                else:
+                    selected_values = st.sidebar.multiselect(
+                        f"Select values for {filter_col}",
+                        unique_values,
+                        default=[
                 )
                 if selected_values:
                     data = data[data[filter_col].isin(selected_values)]
