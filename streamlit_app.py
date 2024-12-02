@@ -30,33 +30,27 @@ def save_plot_as_jpg(fig):
     buf.seek(0)
     return buf
 
+# Function for combined variable comparison
 def plot_combined_comparison(data, selected_columns, plot_type):
-    # Create the figure with 2 rows and 1 column (stacked plots)
-    fig, axes = plt.subplots(2, 1, figsize=(10, 10))
+    plt.figure(figsize=(12, 6))
     
-    # Plot density plot in the first axis (top plot)
     if plot_type == "Density Plot":
         for idx, col in enumerate(selected_columns):
-            if np.issubdtype(data[col].dtype, np.number):  # Ensure it's numeric
-                sns.kdeplot(data[col], ax=axes[0], label=col, shade=True, alpha=0.6)
-        
-        axes[0].set_title('Density Plot of Variables')
-        axes[0].set_xlabel('Depression scores')
-        axes[0].set_ylabel('Density')
-        axes[0].legend(title="Age Groups")
+            if np.issubdtype(data[col].dtype, np.number):  # Check if the column is numeric
+                sns.kdeplot(data[col], label=col, shade=True, alpha=0.6)
+                
+        plt.title("Combined Density Plot")
+        plt.xlabel("Values")
+        plt.ylabel("Density")
+        plt.legend(title="Variables", loc="upper right")
 
-    # Plot boxplot in the second axis (bottom plot)
-    if plot_type == "Boxplot":
-        sns.boxplot(data=data[selected_columns], ax=axes[1], orient="h")
-        axes[1].set_title('Boxplot of Variables')
-        axes[1].set_xlabel('Depression scores')
-        axes[1].set_ylabel('Age')
+    elif plot_type == "Boxplot":
+        sns.boxplot(data=data[selected_columns], orient="h")
+        plt.title("Combined Box Plot")
+        plt.xlabel("Values")
+        plt.ylabel("Variables")
 
-    # Adjust layout
-    plt.tight_layout()
-    
-    # Show the plot
-    st.pyplot(fig)
+    st.pyplot(plt)
     
 # Helper function to generate valid filenames
 def generate_valid_filename(name):
