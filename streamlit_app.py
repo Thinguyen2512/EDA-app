@@ -543,6 +543,18 @@ elif choice == "Upload Your Data":
 
                 else:
                     st.write("Not enough numerical columns for Linear Regression.")
+                    
+                    # Add a button to download the plot as JPG
+            if st.button("Download Plot as JPG"):
+                valid_feature_name = generate_valid_filename(feature)  # Ensure valid filename
+                buf = save_plot_as_jpg(plt.gcf())
+                st.download_button(
+                    label="Download JPG",
+                    data=buf,
+                    file_name=f"{valid_feature_name}_plot.jpg",  # Use valid file name
+                    mime="image/jpeg",
+                    key=str(uuid.uuid4())  # Ensure the key is unique
+                )
                 
         # AI Analysis Placeholder (Optional)
         elif analysis_option == "AI Analysis":
