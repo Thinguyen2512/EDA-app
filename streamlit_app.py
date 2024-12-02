@@ -34,25 +34,15 @@ def save_plot_as_jpg(fig):
 def plot_combined_comparison(data, selected_columns, plot_type):
     plt.figure(figsize=(12, 6))
     
-    if plot_type == "Histogram":
-        for col in selected_columns:
+    if plot_type == "Density Plot":
+        for idx, col in enumerate(selected_columns):
             if np.issubdtype(data[col].dtype, np.number):  # Check if the column is numeric
-                sns.histplot(data[col], kde=True, label=col, element="step", stat="density", common_norm=False)
-                
-        plt.title("Combined Histogram and Density Plot")
-        plt.xlabel("Values")
-        plt.ylabel("Density")
-        plt.legend(title="Variables")
-
-    elif plot_type == "Density Plot":
-        for col in selected_columns:
-            if np.issubdtype(data[col].dtype, np.number):  # Check if the column is numeric
-                sns.kdeplot(data[col], label=col, shade=True)
+                sns.kdeplot(data[col], label=col, shade=True, alpha=0.6)
                 
         plt.title("Combined Density Plot")
         plt.xlabel("Values")
         plt.ylabel("Density")
-        plt.legend(title="Variables")
+        plt.legend(title="Variables", loc="upper right")
 
     elif plot_type == "Boxplot":
         sns.boxplot(data=data[selected_columns], orient="h")
@@ -417,7 +407,7 @@ elif choice == "Upload Your Data":
         elif analysis_option == "Variables Comparison":
             st.subheader("Variables Comparison")
             selected_columns = st.multiselect("Select variables for comparison", data.columns.tolist())
-            plot_type = st.selectbox("Select comparison plot type", ["Histogram", "Density Plot", "Boxplot"])
+            plot_type = st.selectbox("Select comparison plot type", ["Density Plot", "Boxplot"])
             plot_combined_comparison(data, selected_columns, plot_type)
 
             # Add a button to download the plot as JPG
