@@ -155,14 +155,16 @@ elif choice == "Upload Your Data":
             st.pyplot(plt)
 
         # Add a button to download the plot as JPG
-            unique_key = str(uuid.uuid4())  # Generate a unique key
-            if st.button("Download Plot as JPG", key=unique_key):
+            if st.button("Download Plot as JPG"):
+                # Generate a unique key for the button to avoid duplicates
+                unique_key = str(uuid.uuid4())  # Generate a unique key
                 buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
                     data=buf,
                     file_name=f"{feature}_plot.jpg",
-                    mime="image/jpeg"
+                    mime="image/jpeg",
+                    key=unique_key  # Ensure the key is unique
                 )
 
 
@@ -233,16 +235,17 @@ elif choice == "Upload Your Data":
                 st.pyplot(plt)
 
         # Add a button to download the plot as JPG
-            unique_key = str(uuid.uuid4())  # Generate a unique key
-            if st.button("Download Plot as JPG", key=unique_key):
+            if st.button("Download Plot as JPG"):
+                # Generate a unique key for the button to avoid duplicates
+                unique_key = str(uuid.uuid4())  # Generate a unique key
                 buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
                     data=buf,
                     file_name=f"{feature}_plot.jpg",
-                    mime="image/jpeg"
+                    mime="image/jpeg",
+                    key=unique_key  # Ensure the key is unique
                 )
-
         # Plot Three Variables
         elif analysis_option == "Plot Three Variables":
             st.subheader("Plot Three Variables")
@@ -329,14 +332,16 @@ elif choice == "Upload Your Data":
                     st.pyplot(plt)
 
         # Add a button to download the plot as JPG
-            unique_key = str(uuid.uuid4())  # Generate a unique key
-            if st.button("Download Plot as JPG", key=unique_key):
+            if st.button("Download Plot as JPG"):
+                # Generate a unique key for the button to avoid duplicates
+                unique_key = str(uuid.uuid4())  # Generate a unique key
                 buf = save_plot_as_jpg(plt.gcf())
                 st.download_button(
                     label="Download JPG",
                     data=buf,
                     file_name=f"{feature}_plot.jpg",
-                    mime="image/jpeg"
+                    mime="image/jpeg",
+                    key=unique_key  # Ensure the key is unique
                 )
                         
             # Hypothesis Testing
