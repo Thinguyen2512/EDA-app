@@ -11,6 +11,15 @@ from scipy.stats import ttest_ind, f_oneway, chi2_contingency
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
+import io
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+
+# Helper function to save plot as JPG
+def save_plot_as_jpg(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format="jpg", dpi=300, bbox_inches="tight")
+    buf.seek(0)
+    return buf
 
 # Custom CSS for styling
 st.markdown(
