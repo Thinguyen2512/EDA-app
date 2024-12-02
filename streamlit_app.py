@@ -121,20 +121,24 @@ elif choice == "Upload Your Data":
                 )
                 data = data[(data[filter_col] >= min_val) & (data[filter_col] <= max_val)]
             else:  # Categorical data
-                unique_values = data[filter_col].dropna().unique()
-                all_selected = st.sidebar.checkbox(f"Select All {filter_col}", value=True)
+                # Handle categorical filtering with "Select All"
+                unique_values = list(data[filter_col].dropna().unique())  # Ensure it's a list
+                if unique_values:  # Only proceed if there are unique values
+                    all_selected = st.sidebar.checkbox(f"Select All {filter_col}", value=True)
 
-                if all_selected:
-                    selected_values = unique_values  # Chọn toàn bộ giá trị
+                    if all_selected:
+                        selected_values = unique_values  # Select all values
+                    else:
+                        selected_values = st.sidebar.multiselect(
+                            f"Select values for {filter_col}",
+                            options=unique_values,
+                            default=[]  # No default values
+                        )
+                    # Apply filter only if selected_values is not empty
+                    if selected_values:
+                        data = data[data[filter_col].isin(selected_values)]
                 else:
-                    selected_values = st.sidebar.multiselect(
-                        f"Select values for {filter_col}",
-                        unique_values,
-                        default=[]
-                )
-                    
-                if selected_values:
-                    data = data[data[filter_col].isin(selected_values)]
+                    st.warning(f"No unique values found in column {filter_col}.")
 
         # Display filtered data
         st.write("Filtered Data:")
