@@ -132,6 +132,7 @@ elif choice == "Upload Your Data":
                         unique_values,
                         default=[
                 )
+                    
                 if selected_values:
                     data = data[data[filter_col].isin(selected_values)]
 
