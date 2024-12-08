@@ -422,7 +422,7 @@ elif choice == "Upload Your Data":
                     mime="image/jpeg"
                 )
 
-            # Subgroup Analysis
+    # Subgroup Analysis
         elif analysis_option == "Subgroup Analysis":
             st.sidebar.header("Subgroup Analysis Settings")
             subgroup_col = st.sidebar.selectbox("Select Subgroup Column", data.columns)
@@ -436,7 +436,7 @@ elif choice == "Upload Your Data":
                 subgroup_stats = data.groupby(subgroup_col)[metric_col].agg(['mean', 'sum', 'std']).reset_index()
                 st.write("### Subgroup Statistics")
                 st.dataframe(subgroup_stats)
-# Chart type selection
+    # Chart type selection
                 chart_type = st.sidebar.selectbox("Select Chart Type", ["Bar Chart", "Pie Chart (For Totals)"])
 
                 if chart_type == "Bar Chart":
@@ -460,7 +460,7 @@ elif choice == "Upload Your Data":
                 st.warning("Please select both a subgroup column and a metric column.")
 
         
-            # Hypothesis Testing
+    # Hypothesis Testing
         elif analysis_option == "Hypothesis Testing":
             st.subheader("Hypothesis Testing")
             st.write("Choose a statistical test to perform on your dataset.")
