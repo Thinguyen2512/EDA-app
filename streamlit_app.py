@@ -479,103 +479,105 @@ elif choice == "Upload Your Data":
                 st.warning("Please select both a subgroup column and a metric column.")
 
 # Linear Regression Section
-if analysis_option == "Linear Regression":
-    st.subheader("Linear Regression Analysis")
+        elif analysis_option == "Linear Regression":
+            st.subheader("Linear Regression")
 
-    num_list = data.select_dtypes(include=[np.number]).columns.tolist()
+            # Choose between Simple and Multiple Linear Regression
+            regression_type = st.radio("Choose Regression Type:", ["Simple Regression", "Multiple Regression"])
 
-    # Choose between Simple and Multiple Linear Regression
-    regression_type = st.radio("Choose Regression Type:", ["Simple Regression", "Multiple Regression"])
+            num_list = data.select_dtypes(include=[np.number]).columns.tolist()
 
-    if regression_type == "Simple Regression":
-        st.markdown("### Simple Linear Regression")
-        x_col = st.selectbox("Select Independent Variable (X):", num_list)
-        y_col = st.selectbox("Select Dependent Variable (Y):", num_list)
+            # Simple Linear Regression
+            if regression_type == "Simple Regression":
+                st.markdown("### Simple Linear Regression")
+                x_col = st.selectbox("Select Independent Variable (X):", num_list)
+                y_col = st.selectbox("Select Dependent Variable (Y):", num_list)
 
-        if x_col and y_col:
-            # Prepare data by aligning both variables' indexes
-            X = data[[x_col]].dropna()  # Independent variable (X)
-            y = data[y_col].dropna()  # Dependent variable (Y)
-            common_index = X.index.intersection(y.index)
-            X = X.loc[common_index]
-            y = y.loc[common_index]
+                if x_col and y_col:
+                    # Prepare data by aligning both variables' indexes
+                    X = data[[x_col]].dropna()  # Independent variable (X)
+                    y = data[y_col].dropna()  # Dependent variable (Y)
+                    common_index = X.index.intersection(y.index)
+                    X = X.loc[common_index]
+                    y = y.loc[common_index]
 
-            # Fit the linear regression model
-            model = LinearRegression()
-            model.fit(X, y)
+                    # Fit the linear regression model
+                    model = LinearRegression()
+                    model.fit(X, y)
 
-            # Make predictions and calculate performance metrics
-            y_pred = model.predict(X)
-            r2 = r2_score(y, y_pred)
-            coef = model.coef_[0]
-            intercept = model.intercept_
+                    # Make predictions and calculate performance metrics
+                    y_pred = model.predict(X)
+                    r2 = r2_score(y, y_pred)
+                    coef = model.coef_[0]
+                    intercept = model.intercept_
 
-            # Display regression equation and R-squared value
-            st.write(f"**Regression Equation:** Y = {intercept:.2f} + {coef:.2f} * X")
-            st.write(f"**R-squared:** {r2:.2f}")
+                    # Display regression equation and R-squared value
+                    st.write(f"**Regression Equation:** Y = {intercept:.2f} + {coef:.2f} * X")
+                    st.write(f"**R-squared:** {r2:.2f}")
 
-            # Plot the regression line along with data points
-            fig, ax = plt.subplots()
-            sns.scatterplot(x=X[x_col], y=y, ax=ax, label="Data")
-            sns.lineplot(x=X[x_col], y=y_pred, color="red", label="Regression Line", ax=ax)
-            ax.set_title(f"Simple Linear Regression: {y_col} vs {x_col}")
-            ax.set_xlabel(x_col)
-            ax.set_ylabel(y_col)
-            st.pyplot(fig)
+                    # Plot the regression line along with data points
+                    fig, ax = plt.subplots()
+                    sns.scatterplot(x=X[x_col], y=y, ax=ax, label="Data")
+                    sns.lineplot(x=X[x_col], y=y_pred, color="red", label="Regression Line", ax=ax)
+                    ax.set_title(f"Simple Linear Regression: {y_col} vs {x_col}")
+                    ax.set_xlabel(x_col)
+                    ax.set_ylabel(y_col)
+                    st.pyplot(fig)
 
-            # Residuals plot
-            residuals = y - y_pred
-            fig, ax = plt.subplots()
-            sns.residplot(x=X[x_col], y=residuals, lowess=True, ax=ax, line_kws={"color": "red", "lw": 1})
-            ax.set_title("Residuals Plot")
-            ax.set_xlabel(x_col)
-            ax.set_ylabel("Residuals")
-            st.pyplot(fig)
+                    # Residuals plot
+                    residuals = y - y_pred
+                    fig, ax = plt.subplots()
+                    sns.residplot(x=X[x_col], y=residuals, lowess=True, ax=ax, line_kws={"color": "red", "lw": 1})
+                    ax.set_title("Residuals Plot")
+                    ax.set_xlabel(x_col)
+                    ax.set_ylabel("Residuals")
+                    st.pyplot(fig)
 
-    elif regression_type == "Multiple Regression":
-        st.markdown("### Multiple Linear Regression")
-        x_cols = st.multiselect("Select Independent Variables (X):", num_list)
-        y_col = st.selectbox("Select Dependent Variable (Y):", num_list)
+            # Multiple Linear Regression
+            elif regression_type == "Multiple Regression":
+                st.markdown("### Multiple Linear Regression")
+                x_cols = st.multiselect("Select Independent Variables (X):", num_list)
+                y_col = st.selectbox("Select Dependent Variable (Y):", num_list)
 
-        if x_cols and y_col:
-            # Prepare data by ensuring matching indexes
-            X = data[x_cols].dropna()  # Independent variables (X)
-            y = data[y_col].dropna()  # Dependent variable (Y)
-            common_index = X.index.intersection(y.index)
-            X = X.loc[common_index]
-            y = y.loc[common_index]
+                if x_cols and y_col:
+                    # Prepare data by ensuring matching indexes
+                    X = data[x_cols].dropna()  # Independent variables (X)
+                    y = data[y_col].dropna()  # Dependent variable (Y)
+                    common_index = X.index.intersection(y.index)
+                    X = X.loc[common_index]
+                    y = y.loc[common_index]
 
-            # Fit the multiple regression model
-            model = LinearRegression()
-            model.fit(X, y)
+                    # Fit the multiple regression model
+                    model = LinearRegression()
+                    model.fit(X, y)
 
-            # Make predictions and calculate model metrics
-            y_pred = model.predict(X)
-            r2 = r2_score(y, y_pred)
-            mse = mean_squared_error(y, y_pred)
-            adj_r2 = 1 - (1 - r2) * (len(y) - 1) / (len(y) - X.shape[1] - 1)
+                    # Make predictions and calculate model metrics
+                    y_pred = model.predict(X)
+                    r2 = r2_score(y, y_pred)
+                    mse = mean_squared_error(y, y_pred)
+                    adj_r2 = 1 - (1 - r2) * (len(y) - 1) / (len(y) - X.shape[1] - 1)
 
-            # Display R-squared, Adjusted R-squared, and MSE
-            st.write(f"**R-squared:** {r2:.2f}")
-            st.write(f"**Adjusted R-squared:** {adj_r2:.2f}")
-            st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
+                    # Display R-squared, Adjusted R-squared, and MSE
+                    st.write(f"**R-squared:** {r2:.2f}")
+                    st.write(f"**Adjusted R-squared:** {adj_r2:.2f}")
+                    st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
 
-            # Display model coefficients
-            st.markdown("### Model Coefficients")
-            coef_df = pd.DataFrame({
-                "Variable": ["Intercept"] + x_cols,
-                "Coefficient": [model.intercept_] + list(model.coef_)
-            })
-            st.table(coef_df)
+                    # Display model coefficients
+                    st.markdown("### Model Coefficients")
+                    coef_df = pd.DataFrame({
+                        "Variable": ["Intercept"] + x_cols,
+                        "Coefficient": [model.intercept_] + list(model.coef_)
+                    })
+                    st.table(coef_df)
 
-            # Residuals plot for multiple regression
-            residuals = y - y_pred
-            fig, ax = plt.subplots()
-            sns.residplot(x=y_pred, y=residuals, lowess=True, ax=ax, line_kws={"color": "red", "lw": 1})
-            ax.set_title("Residuals Plot")
-            ax.set_xlabel("Predicted Values")
-            ax.set_ylabel("Residuals")
-            st.pyplot(fig)
+                    # Residuals plot for multiple regression
+                    residuals = y - y_pred
+                    fig, ax = plt.subplots()
+                    sns.residplot(x=y_pred, y=residuals, lowess=True, ax=ax, line_kws={"color": "red", "lw": 1})
+                    ax.set_title("Residuals Plot")
+                    ax.set_xlabel("Predicted Values")
+                    ax.set_ylabel("Residuals")
+                    st.pyplot(fig)
             
 # Contact Us section
 elif choice == "Contact Us":
