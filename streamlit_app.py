@@ -480,85 +480,70 @@ elif choice == "Upload Your Data":
                 st.warning("Please select both a subgroup column and a metric column.")
 
         
-    # Linear Regression (Simple and Multiple)
-elif analysis_option == "Linear Regression":
-    st.subheader("Linear Regression")
-    st.write("Choose predictor(s) and response variable for the regression model.")
+    elif analysis_option == "Linear Regression":
+            st.subheader("Linear Regression")
+            st.write("Choose predictor(s) and response variable for the regression model.")
 
-    # Select numerical columns (for regression variables)
-    num_cols = data.select_dtypes(include=np.number).columns.tolist()
+            num_cols = data.select_dtypes(include=np.number).columns.tolist()
 
-    if len(num_cols) > 1:  # Need at least one predictor and one response
-        # Select predictor (independent) and response (dependent) variables
-        response_col = st.selectbox("Select the response (dependent) variable:", num_cols)
-        predictor_cols = st.multiselect(
-            "Select predictor (independent) variable(s):",
-            num_cols,
-            default=[num_cols[0]]  # Default to the first column as a simple regression
-        )
+            if len(num_cols) > 1:  # Need at least one predictor and one response
+                response_col = st.selectbox("Select the response (dependent) variable:", num_cols)
+                predictor_cols = st.multiselect("Select predictor (independent) variable(s):", num_cols, default=[num_cols[0]])
 
-        # Prepare data for training the model
-        X = data[predictor_cols].dropna()  # Predictors (independent variables)
-        y = data[response_col].dropna()  # Response (dependent variable)
+                # Prepare data for training the model
+                X = data[predictor_cols].dropna()  # Predictors (independent variables)
+                y = data[response_col].dropna()  # Response (dependent variable)
 
-        # Ensure that the number of rows matches between predictors and response
-        common_data = pd.concat([X, y], axis=1).dropna()
-        X = common_data[predictor_cols]
-        y = common_data[response_col]
+                # Ensure that the number of rows matches between predictors and response
+                common_data = pd.concat([X, y], axis=1).dropna()
+                X = common_data[predictor_cols]
+                y = common_data[response_col]
 
-        # Split data into training and testing sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                # Split data into training and testing sets
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-        # Create and train the Linear Regression model
-        model = LinearRegression()
-        model.fit(X_train, y_train)
+                # Create and train the Linear Regression model
+                model = LinearRegression()
+                model.fit(X_train, y_train)
 
-        # Predict values
-        y_pred = model.predict(X_test)
+                # Predict values
+                y_pred = model.predict(X_test)
 
-        # Model evaluation
-        mse = mean_squared_error(y_test, y_pred)
-        r2 = r2_score(y_test, y_pred)
+                # Model evaluation
+                mse = mean_squared_error(y_test, y_pred)
+                r2 = r2_score(y_test, y_pred)
 
-        st.write(f"**Mean Squared Error (MSE):** {mse:.4f}")
-        st.write(f"**R-squared (R²):** {r2:.4f}")
+                st.write(f"**Mean Squared Error (MSE):** {mse:.4f}")
+                st.write(f"**R-squared (R²):** {r2:.4f}")
 
-        # Display coefficients
-        st.write(f"**Intercept:** {model.intercept_:.4f}")
-        st.write(f"**Coefficients:**")
-        for feature, coef in zip(predictor_cols, model.coef_):
-            st.write(f"{feature}: {coef:.4f}")
+                # Display coefficients
+                st.write(f"**Intercept:** {model.intercept_:.4f}")
+                st.write(f"**Coefficients:**")
+                for feature, coef in zip(predictor_cols, model.coef_):
+                    st.write(f"{feature}: {coef:.4f}")
 
-        # Plot regression line (for simple regression or with multiple predictors)
-        plt.figure(figsize=(10, 6))
-        if len(predictor_cols) == 1:  # Simple regression (one predictor)
-            plt.scatter(X_test, y_test, color="blue", label="Test Data")
-            plt.plot(X_test, y_pred, color="red", label="Regression Line")
-            plt.xlabel(predictor_cols[0])
-            plt.ylabel(response_col)
-        else:  # Multiple regression, plotting only one of the predictors for simplicity
-            plt.scatter(X_test[predictor_cols[0]], y_test, color="blue", label="Test Data")
-            plt.plot(X_test[predictor_cols[0]], y_pred, color="red", label="Regression Line")
-            plt.xlabel(predictor_cols[0])
-            plt.ylabel(response_col)
+                # Plot regression line
+                plt.figure(figsize=(10, 6))
+                plt.scatter(X_test[predictor_cols[0]], y_test, color="blue", label="Test Data")
+                plt.plot(X_test[predictor_cols[0]], y_pred, color="red", label="Regression Line")
+                plt.xlabel(predictor_cols[0])
+                plt.ylabel(response_col)
+                plt.legend()
+                st.pyplot(plt)
 
-        plt.legend()
-        st.pyplot(plt)
-
-        # Add a button to download the plot as JPG
-        if st.button("Download Plot as JPG"):
-            valid_feature_name = generate_valid_filename(f"{'_'.join(predictor_cols)}_vs_{response_col}")  # Ensure valid filename
-            buf = save_plot_as_jpg(plt.gcf())
-            st.download_button(
-                label="Download JPG",
-                data=buf,
-                file_name=f"{valid_feature_name}_plot.jpg",  # Use valid file name
-                mime="image/jpeg",
-                key=str(uuid.uuid4())  # Ensure the key is unique
-            )
-
-    else:
-        st.write("Not enough numerical columns for Linear Regression.")
+                # Add a button to download the plot as JPG
+                if st.button("Download Plot as JPG"):
+                    valid_feature_name = generate_valid_filename(f"{'_'.join(predictor_cols)}_vs_{response_col}")  
+                    buf = save_plot_as_jpg(plt.gcf())
+                    st.download_button(
+                        label="Download JPG",
+                        data=buf,
+                        file_name=f"{valid_feature_name}_plot.jpg",  
+                        mime="image/jpeg",
+                        key=str(uuid.uuid4())  
+                    )
+            else:
+                st.write("Not enough numerical columns for Linear Regression.")
                 
 
                 
