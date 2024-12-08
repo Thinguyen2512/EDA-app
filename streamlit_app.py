@@ -478,55 +478,59 @@ elif choice == "Upload Your Data":
             else:
                 st.warning("Please select both a subgroup column and a metric column.")
 
-# Linear Regression
-        elif analysis_option == "Linear Regression":
-            st.subheader("Linear Regression")
-            st.write("Choose predictor(s) and response variable for the regression model.")
+# 5. Linear Regression
+            elif test_type == "Linear Regression":
+                st.write("### Linear Regression")
+                features = st.multiselect("Select input features (X):", data.columns)
+                target = st.selectbox("Select the target variable (y):", data.columns)
 
-            num_cols = data.select_dtypes(include=np.number).columns.tolist()
+                if features and target:
+                    st.write(f"**Selected Features:** {features}")
+                    st.write(f"**Target Variable:** {target}")
 
-            if len(num_cols) > 1:
-                response_col = st.selectbox("Select the response (dependent) variable:", num_cols)
-                predictor_cols = st.multiselect("Select predictor (independent) variable(s):", num_cols, default=[num_cols[0]])
+                    # Convert data to numeric and drop NaN values
+                    X = data[features].apply(pd.to_numeric, errors='coerce')
+                    y = pd.to_numeric(data[target], errors='coerce')
+                    X, y = X.dropna(), y.dropna()  # Drop missing values
+                    X, y = X.loc[y.index], y.loc[X.index]  # Align indices
 
-                X = data[predictor_cols].dropna()
-                y = data[response_col].dropna()
+                    if len(X) > 0 and len(y) > 0:
+                        # Split data into training and testing sets
+                        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-                common_data = pd.concat([X, y], axis=1).dropna()
-                X = common_data[predictor_cols]
-                y = common_data[response_col]
+                        # Model selection
+                        model_choice = st.selectbox("Select the model:", ["Linear Regression", "Decision Tree", "Random Forest"])
+                        if model_choice == "Linear Regression":
+                            from sklearn.linear_model import LinearRegression
+                            model = LinearRegression()
+                        elif model_choice == "Decision Tree":
+                            from sklearn.tree import DecisionTreeRegressor
+                            model = DecisionTreeRegressor()
+                        elif model_choice == "Random Forest":
+                            from sklearn.ensemble import RandomForestRegressor
+                            model = RandomForestRegressor()
 
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                        # Train the model
+                        model.fit(X_train, y_train)
+                        y_pred = model.predict(X_test)
 
-                model = LinearRegression()
-                model.fit(X_train, y_train)
+                        # Evaluation metrics
+                        mse = mean_squared_error(y_test, y_pred)
+                        r2 = r2_score(y_test, y_pred)
+                        st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
+                        st.write(f"**R-squared (R²):** {r2:.2f}")
 
-                y_pred = model.predict(X_test)
-
-                mse = mean_squared_error(y_test, y_pred)
-                r2 = r2_score(y_test, y_pred)
-
-                st.write(f"**Mean Squared Error (MSE):** {mse:.4f}")
-                st.write(f"**R-squared (R²):** {r2:.4f}")
-
-                st.write(f"**Intercept:** {model.intercept_:.4f}")
-                st.write(f"**Coefficients:**")
-                for feature, coef in zip(predictor_cols, model.coef_):
-                    st.write(f"{feature}: {coef:.4f}")
-
-                if len(predictor_cols) == 1:
-                    plt.figure(figsize=(10, 6))
-                    plt.scatter(X_test[predictor_cols[0]], y_test, color="blue", label="Test Data")
-                    plt.plot(X_test[predictor_cols[0]], y_pred, color="red", label="Regression Line")
-                    plt.xlabel(predictor_cols[0])
-                    plt.ylabel(response_col)
-                    plt.legend()
-                    st.pyplot(plt)
-
-                else:
-                    st.write("Multiple predictors selected. Here is the regression model for the predictors:")
-                    sns.pairplot(common_data, kind="reg", hue=response_col)
-                    st.pyplot(plt)
+                        # Visualization
+                        st.subheader("Prediction vs Actual")
+                        fig, ax = plt.subplots()
+                        ax.scatter(y_test, y_pred, alpha=0.5)
+                        ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
+                        ax.set_xlabel("Actual")
+                        ax.set_ylabel("Predicted")
+                        plt.title("Prediction vs Actual")
+                        st.pyplot(fig)
+                    else:
+                        st.write("Not enough data to train the model.")
 
                 if st.button("Download Plot as JPG"):
                     valid_feature_name = generate_valid_filename(f"{'_'.join(predictor_cols)}_vs_{response_col}")
