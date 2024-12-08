@@ -556,23 +556,29 @@ elif choice == "Upload Your Data":
                     })
                     st.table(coef_df)
 
-                    # Select one independent variable to plot against the dependent variable
-                    selected_x_col = st.selectbox("Choose one Independent Variable (X) to plot", x_cols)
-                    
-                    # Ensure that the selected independent variable is included in X_plot
-                    X_plot = data[[selected_x_col]].dropna()
-                    
-                    # Predict using the model and the selected independent variable
-                    y_pred_plot = model.predict(X_plot)
-
-                    # Scatter plot and regression line
-                    fig, ax = plt.subplots()
-                    sns.scatterplot(x=X_plot[selected_x_col], y=y, ax=ax, label="Data")
-                    sns.lineplot(x=X_plot[selected_x_col], y=y_pred_plot, color="red", label="Regression Line", ax=ax)
-                    ax.set_title(f"Multiple Linear Regression: {y_col} vs {selected_x_col}")
-                    ax.set_xlabel(selected_x_col)
-                    ax.set_ylabel(y_col)
-                    st.pyplot(fig)
+                    # Plot the regression in a 3D plot if there are exactly two independent variables
+                    if len(x_cols) == 2:
+                        fig = plt.figure()
+                        ax = fig.add_subplot(111, projection='3d')
+                        ax.scatter(X[x_cols[0]], X[x_cols[1]], y, color="blue", label="Data")
+                        
+                        # Create meshgrid for plotting regression surface
+                        x1_range = X[x_cols[0]].values
+                        x2_range = X[x_cols[1]].values
+                        X1, X2 = np.meshgrid(np.linspace(min(x1_range), max(x1_range), 30),
+                                             np.linspace(min(x2_range), max(x2_range), 30))
+                        X_flat = np.c_[X1.ravel(), X2.ravel()]
+                        y_pred_flat = model.predict(X_flat).reshape(X1.shape)
+                        
+                        # Plot the regression surface
+                        ax.plot_surface(X1, X2, y_pred_flat, color='red', alpha=0.5)
+                        ax.set_xlabel(x_cols[0])
+                        ax.set_ylabel(x_cols[1])
+                        ax.set_zlabel(y_col)
+                        ax.set_title(f"Multiple Linear Regression: {y_col} vs {x_cols[0]} and {x_cols[1]}")
+                        st.pyplot(fig)
+                    else:
+                        st.write("The plot can only be shown for exactly two independent variables.")
             
 # Contact Us section
 elif choice == "Contact Us":
