@@ -445,18 +445,23 @@ elif choice == "Upload Your Data":
     # Chart type selection
                 chart_type = st.sidebar.selectbox("Select Chart Type", ["Bar Chart", "Pie Chart (For Totals)"])
 
-                if chart_type == "Bar Chart":
-                    # Bar chart for mean, total, and standard deviation
-                    metric = st.sidebar.selectbox("Select Metric", ['mean', 'sum', 'std'])
+                # Bar chart for mean, total, and standard deviation
+            if chart_type == "Bar Chart":
+                metric = st.sidebar.selectbox("Select Metric", ['mean', 'sum', 'std'])
+                
+                # Check if the metric column exists
+                if metric in subgroup_stats.columns:
                     plt.figure(figsize=(10, 6))
-                    sns.barplot(x=subgroup_col, y=metric, data=subgroup_stats.rename(columns={metric: 'value'}))
+                    sns.barplot(x=subgroup_col, y=metric, data=subgroup_stats)
                     plt.title(f"Bar Chart of {metric.capitalize()} by {subgroup_col}")
                     plt.ylabel(metric.capitalize())
                     plt.xlabel(subgroup_col)
                     st.pyplot(plt)
+                else:
+                    st.error(f"Metric '{metric}' does not exist in the data.")
 
                 # Pie chart for total values
-            elif chart_type == "Pie Chart (For Totals)":
+            elif chart_type == "Pie Chart":
                 if 'sum' in subgroup_stats.columns and subgroup_col in subgroup_stats.columns:
                     # Ensure that 'sum' is numeric
                     subgroup_stats['sum'] = pd.to_numeric(subgroup_stats['sum'], errors='coerce')
