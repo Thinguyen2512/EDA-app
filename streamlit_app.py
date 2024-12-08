@@ -477,6 +477,7 @@ elif choice == "Upload Your Data":
                     st.pyplot(fig)
                 else:
                     st.error(f"The necessary columns ('sum' and '{subgroup_col}') are not found in the data.")
+
         
     # Hypothesis Testing
         elif analysis_option == "Hypothesis Testing":
