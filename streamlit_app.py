@@ -455,25 +455,21 @@ elif choice == "Upload Your Data":
                     plt.xlabel(subgroup_col)
                     st.pyplot(plt)
 
-                elif chart_type == "Pie Chart (For Totals)":
-                    if 'sum' in subgroup_stats.columns and subgroup_col in subgroup_stats.columns:
-                # Ensure that 'sum' is numeric
-                        subgroup_stats['sum'] = pd.to_numeric(subgroup_stats['sum'], errors='coerce')
-                # Drop any rows with NaN values (if any) in case conversion failed
-    subgroup_stats = subgroup_stats.dropna(subset=['sum'])
+                # Pie chart for total values
+            elif chart_type == "Pie Chart (For Totals)":
+                if 'sum' in subgroup_stats.columns and subgroup_col in subgroup_stats.columns:
+                    # Ensure that 'sum' is numeric
+                    subgroup_stats['sum'] = pd.to_numeric(subgroup_stats['sum'], errors='coerce')
+                    # Drop any rows with NaN values (if any) in case conversion failed
+                    subgroup_stats = subgroup_stats.dropna(subset=['sum'])
 
-    # Create the pie chart
-    fig, ax = plt.subplots(figsize=(8, 8))  # Adjust the figure size if needed
-    ax.pie(subgroup_stats['sum'], labels=subgroup_stats[subgroup_col], autopct='%1.1f%%', startangle=140)
-    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    st.pyplot(fig)
-else:
-    st.error(f"The necessary columns ('sum' and '{subgroup_col}') are not found in the data.")
-                    # Pie chart for total values
-                    plt.figure(figsize=(8, 8))
-                    plt.pie(subgroup_stats['sum'], labels=subgroup_stats[subgroup_col], autopct='%1.1f%%', startangle=140)
-                    plt.title(f"Pie Chart of Total {metric_col} by {subgroup_col}")
-                    st.pyplot(plt)
+                    # Create the pie chart
+                    fig, ax = plt.subplots(figsize=(8, 8))  # Adjust the figure size if needed
+                    ax.pie(subgroup_stats['sum'], labels=subgroup_stats[subgroup_col], autopct='%1.1f%%', startangle=140)
+                    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+                    st.pyplot(fig)
+                else:
+                    st.error(f"The necessary columns ('sum' and '{subgroup_col}') are not found in the data.")
 
             else:
                 st.warning("Please select both a subgroup column and a metric column.")
