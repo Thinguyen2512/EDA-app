@@ -535,9 +535,10 @@ elif analysis_option == "Linear Regression":
             else:
                 st.write("Not enough numerical columns for Linear Regression.")
                 
+    # AI Analysis Placeholder (Optional)
     elif analysis_option == "AI Analysis":
-            st.subheader("AI-based Analysis Placeholder")
-            st.write("AI analysis options will be available soon.")
+        st.subheader("AI-based Analysis Placeholder")
+        st.write("AI analysis options will be available soon.")
 
 
 # Contact Us section
