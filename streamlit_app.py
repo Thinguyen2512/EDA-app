@@ -479,8 +479,10 @@ elif choice == "Upload Your Data":
                 st.warning("Please select both a subgroup column and a metric column.")
 
 # Linear Regression Section
-def linear_regression_analysis(df, num_list):
+if analysis_option == "Linear Regression":
     st.subheader("Linear Regression Analysis")
+
+    num_list = data.select_dtypes(include=[np.number]).columns.tolist()
 
     # Choose between Simple and Multiple Linear Regression
     regression_type = st.radio("Choose Regression Type:", ["Simple Regression", "Multiple Regression"])
@@ -492,8 +494,8 @@ def linear_regression_analysis(df, num_list):
 
         if x_col and y_col:
             # Prepare data by aligning both variables' indexes
-            X = df[[x_col]].dropna()  # Independent variable (X)
-            y = df[y_col].dropna()  # Dependent variable (Y)
+            X = data[[x_col]].dropna()  # Independent variable (X)
+            y = data[y_col].dropna()  # Dependent variable (Y)
             common_index = X.index.intersection(y.index)
             X = X.loc[common_index]
             y = y.loc[common_index]
@@ -537,8 +539,8 @@ def linear_regression_analysis(df, num_list):
 
         if x_cols and y_col:
             # Prepare data by ensuring matching indexes
-            X = df[x_cols].dropna()  # Independent variables (X)
-            y = df[y_col].dropna()  # Dependent variable (Y)
+            X = data[x_cols].dropna()  # Independent variables (X)
+            y = data[y_col].dropna()  # Dependent variable (Y)
             common_index = X.index.intersection(y.index)
             X = X.loc[common_index]
             y = y.loc[common_index]
