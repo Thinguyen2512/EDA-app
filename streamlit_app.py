@@ -422,30 +422,32 @@ elif choice == "Upload Your Data":
                     mime="image/jpeg"
                 )
 
-    # Subgroup Analysis
-        elif analysis_option == "Subgroup Analysis":
-            st.sidebar.header("Subgroup Analysis Settings")
-            subgroup_col = st.sidebar.selectbox("Select Subgroup Column", data.columns)
-            metric_col = st.sidebar.selectbox("Select Metric Column", data.columns)
-            data[metric_col] = pd.to_numeric(data[metric_col], errors='coerce')
+    # Selecting columns for subgroup and metric
+    subgroup_col = st.sidebar.selectbox("Select Subgroup Column", data.columns)
+    metric_col = st.sidebar.selectbox("Select Metric Column", data.columns)
+    
+    # Ensure the metric column is numeric
+    data[metric_col] = pd.to_numeric(data[metric_col], errors='coerce')
 
-            if subgroup_col and metric_col:
-                # Drop NA values for selected columns
-                data = data[[subgroup_col, metric_col]].dropna()
-                if data.empty:
-                    st.warning("No valid data available for the selected columns.")
-                else:
-                    subgroup_stats = data.groupby(subgroup_col)[metric_col].agg(['mean', 'sum', 'std']).reset_index()
-                    st.write("### Subgroup Statistics")
-                    st.dataframe(subgroup_stats)
+    if subgroup_col and metric_col:
+        # Drop NA values for selected columns
+        data = data[[subgroup_col, metric_col]].dropna()
+        
+        if data.empty:
+            st.warning("No valid data available for the selected columns.")
+        else:
+            # Group data by subgroup column and calculate the mean, sum, and standard deviation
+            subgroup_stats = data.groupby(subgroup_col)[metric_col].agg(['mean', 'sum', 'std']).reset_index()
+            st.write("### Subgroup Statistics")
+            st.dataframe(subgroup_stats)
 
-                st.write(f"Data types: {data.dtypes}")
-                st.write(f"Data sample: {data[[subgroup_col, metric_col]].head()}")
+            st.write(f"Data types: {data.dtypes}")
+            st.write(f"Data sample: {data[[subgroup_col, metric_col]].head()}")
 
-    # Chart type selection
-                chart_type = st.sidebar.selectbox("Select Chart Type", ["Bar Chart", "Pie Chart (For Totals)"])
+            # Chart type selection
+            chart_type = st.sidebar.selectbox("Select Chart Type", ["Bar Chart", "Pie Chart (For Totals)"])
 
-                # Bar chart for mean, total, and standard deviation
+            # Bar chart for mean, total, and standard deviation
             if chart_type == "Bar Chart":
                 metric = st.sidebar.selectbox("Select Metric", ['mean', 'sum', 'std'])
                 
@@ -459,9 +461,9 @@ elif choice == "Upload Your Data":
                     st.pyplot(plt)
                 else:
                     st.error(f"Metric '{metric}' does not exist in the data.")
-
-                # Pie chart for total values
-            elif chart_type == "Pie Chart":
+                
+            # Pie chart for total values
+            elif chart_type == "Pie Chart (For Totals)":
                 if 'sum' in subgroup_stats.columns and subgroup_col in subgroup_stats.columns:
                     # Ensure that 'sum' is numeric
                     subgroup_stats['sum'] = pd.to_numeric(subgroup_stats['sum'], errors='coerce')
@@ -475,9 +477,6 @@ elif choice == "Upload Your Data":
                     st.pyplot(fig)
                 else:
                     st.error(f"The necessary columns ('sum' and '{subgroup_col}') are not found in the data.")
-
-            else:
-                st.warning("Please select both a subgroup column and a metric column.")
         
     # Hypothesis Testing
         elif analysis_option == "Hypothesis Testing":
