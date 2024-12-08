@@ -479,7 +479,7 @@ elif choice == "Upload Your Data":
             else:
                 st.warning("Please select both a subgroup column and a metric column.")
 
-        
+    # Linear Regression    
     elif analysis_option == "Linear Regression":
             st.subheader("Linear Regression")
             st.write("Choose predictor(s) and response variable for the regression model.")
