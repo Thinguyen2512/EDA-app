@@ -479,7 +479,8 @@ elif choice == "Upload Your Data":
             else:
                 st.warning("Please select both a subgroup column and a metric column.")
 
-elif analysis_option == "Linear Regression":
+        # Linear Regression
+        elif analysis_option == "Linear Regression":
             st.subheader("Linear Regression")
             st.write("Choose predictor(s) and response variable for the regression model.")
 
@@ -534,12 +535,11 @@ elif analysis_option == "Linear Regression":
                     )
             else:
                 st.write("Not enough numerical columns for Linear Regression.")
-                
+            
     # AI Analysis Placeholder (Optional)
     elif analysis_option == "AI Analysis":
         st.subheader("AI-based Analysis Placeholder")
         st.write("AI analysis options will be available soon.")
-
 
 # Contact Us section
 elif choice == "Contact Us":
