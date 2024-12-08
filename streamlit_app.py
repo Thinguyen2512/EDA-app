@@ -480,7 +480,7 @@ elif choice == "Upload Your Data":
 
 # Linear Regression Section
         elif analysis_option == "Linear Regression":
-            st.subheader("Linear Regression")
+            st.subheader("Linear Regression Analysis")
 
             # Select Regression Type using selectbox
             regression_type = st.selectbox("Choose Regression Type:", ["Simple Regression", "Multiple Regression"])
@@ -559,8 +559,10 @@ elif choice == "Upload Your Data":
                     # Select one independent variable to plot against the dependent variable
                     selected_x_col = st.selectbox("Choose one Independent Variable (X) to plot", x_cols)
                     
-                    # Predict using the selected independent variable
+                    # Ensure that the selected independent variable is included in X_plot
                     X_plot = data[[selected_x_col]].dropna()
+                    
+                    # Predict using the model and the selected independent variable
                     y_pred_plot = model.predict(X_plot)
 
                     # Scatter plot and regression line
@@ -571,7 +573,6 @@ elif choice == "Upload Your Data":
                     ax.set_xlabel(selected_x_col)
                     ax.set_ylabel(y_col)
                     st.pyplot(fig)
-
             
 # Contact Us section
 elif choice == "Contact Us":
