@@ -478,73 +478,102 @@ elif choice == "Upload Your Data":
             else:
                 st.warning("Please select both a subgroup column and a metric column.")
 
-# 5. Linear Regression
-            elif test_type == "Linear Regression":
-                st.write("### Linear Regression")
-                features = st.multiselect("Select input features (X):", data.columns)
-                target = st.selectbox("Select the target variable (y):", data.columns)
+# Linear Regression Section
+def linear_regression_analysis(df, num_list):
+    st.subheader("Linear Regression Analysis")
 
-                if features and target:
-                    st.write(f"**Selected Features:** {features}")
-                    st.write(f"**Target Variable:** {target}")
+    # Choose between Simple and Multiple Linear Regression
+    regression_type = st.radio("Choose Regression Type:", ["Simple Regression", "Multiple Regression"])
 
-                    # Convert data to numeric and drop NaN values
-                    X = data[features].apply(pd.to_numeric, errors='coerce')
-                    y = pd.to_numeric(data[target], errors='coerce')
-                    X, y = X.dropna(), y.dropna()  # Drop missing values
-                    X, y = X.loc[y.index], y.loc[X.index]  # Align indices
+    if regression_type == "Simple Regression":
+        st.markdown("### Simple Linear Regression")
+        x_col = st.selectbox("Select Independent Variable (X):", num_list)
+        y_col = st.selectbox("Select Dependent Variable (Y):", num_list)
 
-                    if len(X) > 0 and len(y) > 0:
-                        # Split data into training and testing sets
-                        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+        if x_col and y_col:
+            # Prepare data by aligning both variables' indexes
+            X = df[[x_col]].dropna()  # Independent variable (X)
+            y = df[y_col].dropna()  # Dependent variable (Y)
+            common_index = X.index.intersection(y.index)
+            X = X.loc[common_index]
+            y = y.loc[common_index]
 
-                        # Model selection
-                        model_choice = st.selectbox("Select the model:", ["Linear Regression", "Decision Tree", "Random Forest"])
-                        if model_choice == "Linear Regression":
-                            from sklearn.linear_model import LinearRegression
-                            model = LinearRegression()
-                        elif model_choice == "Decision Tree":
-                            from sklearn.tree import DecisionTreeRegressor
-                            model = DecisionTreeRegressor()
-                        elif model_choice == "Random Forest":
-                            from sklearn.ensemble import RandomForestRegressor
-                            model = RandomForestRegressor()
+            # Fit the linear regression model
+            model = LinearRegression()
+            model.fit(X, y)
 
-                        # Train the model
-                        model.fit(X_train, y_train)
-                        y_pred = model.predict(X_test)
+            # Make predictions and calculate performance metrics
+            y_pred = model.predict(X)
+            r2 = r2_score(y, y_pred)
+            coef = model.coef_[0]
+            intercept = model.intercept_
 
-                        # Evaluation metrics
-                        mse = mean_squared_error(y_test, y_pred)
-                        r2 = r2_score(y_test, y_pred)
-                        st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
-                        st.write(f"**R-squared (R²):** {r2:.2f}")
+            # Display regression equation and R-squared value
+            st.write(f"**Regression Equation:** Y = {intercept:.2f} + {coef:.2f} * X")
+            st.write(f"**R-squared:** {r2:.2f}")
 
-                        # Visualization
-                        st.subheader("Prediction vs Actual")
-                        fig, ax = plt.subplots()
-                        ax.scatter(y_test, y_pred, alpha=0.5)
-                        ax.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--')
-                        ax.set_xlabel("Actual")
-                        ax.set_ylabel("Predicted")
-                        plt.title("Prediction vs Actual")
-                        st.pyplot(fig)
-                    else:
-                        st.write("Not enough data to train the model.")
+            # Plot the regression line along with data points
+            fig, ax = plt.subplots()
+            sns.scatterplot(x=X[x_col], y=y, ax=ax, label="Data")
+            sns.lineplot(x=X[x_col], y=y_pred, color="red", label="Regression Line", ax=ax)
+            ax.set_title(f"Simple Linear Regression: {y_col} vs {x_col}")
+            ax.set_xlabel(x_col)
+            ax.set_ylabel(y_col)
+            st.pyplot(fig)
 
-                if st.button("Download Plot as JPG"):
-                    valid_feature_name = generate_valid_filename(f"{'_'.join(predictor_cols)}_vs_{response_col}")
-                    buf = save_plot_as_jpg(plt.gcf())
-                    st.download_button(
-                        label="Download JPG",
-                        data=buf,
-                        file_name=f"{valid_feature_name}_plot.jpg",  
-                        mime="image/jpeg",
-                        key=str(uuid.uuid4())  
-                    )
+            # Residuals plot
+            residuals = y - y_pred
+            fig, ax = plt.subplots()
+            sns.residplot(x=X[x_col], y=residuals, lowess=True, ax=ax, line_kws={"color": "red", "lw": 1})
+            ax.set_title("Residuals Plot")
+            ax.set_xlabel(x_col)
+            ax.set_ylabel("Residuals")
+            st.pyplot(fig)
 
-            else:
-                st.write("Not enough numerical columns for Linear Regression.")
+    elif regression_type == "Multiple Regression":
+        st.markdown("### Multiple Linear Regression")
+        x_cols = st.multiselect("Select Independent Variables (X):", num_list)
+        y_col = st.selectbox("Select Dependent Variable (Y):", num_list)
+
+        if x_cols and y_col:
+            # Prepare data by ensuring matching indexes
+            X = df[x_cols].dropna()  # Independent variables (X)
+            y = df[y_col].dropna()  # Dependent variable (Y)
+            common_index = X.index.intersection(y.index)
+            X = X.loc[common_index]
+            y = y.loc[common_index]
+
+            # Fit the multiple regression model
+            model = LinearRegression()
+            model.fit(X, y)
+
+            # Make predictions and calculate model metrics
+            y_pred = model.predict(X)
+            r2 = r2_score(y, y_pred)
+            mse = mean_squared_error(y, y_pred)
+            adj_r2 = 1 - (1 - r2) * (len(y) - 1) / (len(y) - X.shape[1] - 1)
+
+            # Display R-squared, Adjusted R-squared, and MSE
+            st.write(f"**R-squared:** {r2:.2f}")
+            st.write(f"**Adjusted R-squared:** {adj_r2:.2f}")
+            st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
+
+            # Display model coefficients
+            st.markdown("### Model Coefficients")
+            coef_df = pd.DataFrame({
+                "Variable": ["Intercept"] + x_cols,
+                "Coefficient": [model.intercept_] + list(model.coef_)
+            })
+            st.table(coef_df)
+
+            # Residuals plot for multiple regression
+            residuals = y - y_pred
+            fig, ax = plt.subplots()
+            sns.residplot(x=y_pred, y=residuals, lowess=True, ax=ax, line_kws={"color": "red", "lw": 1})
+            ax.set_title("Residuals Plot")
+            ax.set_xlabel("Predicted Values")
+            ax.set_ylabel("Residuals")
+            st.pyplot(fig)
             
 # Contact Us section
 elif choice == "Contact Us":
