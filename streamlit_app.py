@@ -136,7 +136,7 @@ elif choice == "Upload Your Data":
             "Plot Two Variables",
             "Plot Three Variables",
             "Variables Comparison",
-            "Subgroup Analysis"
+            "Subgroup Analysis",
             "Hypothesis Testing",
             "AI Analysis"
         ])
@@ -458,7 +458,6 @@ elif choice == "Upload Your Data":
 
             else:
                 st.warning("Please select both a subgroup column and a metric column.")
-
         
     # Hypothesis Testing
         elif analysis_option == "Hypothesis Testing":
