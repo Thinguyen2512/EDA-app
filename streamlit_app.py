@@ -482,12 +482,12 @@ elif choice == "Upload Your Data":
         elif analysis_option == "Linear Regression":
             st.subheader("Linear Regression")
 
-            # Choose between Simple and Multiple Linear Regression
-            regression_type = st.radio("Choose Regression Type:", ["Simple Regression", "Multiple Regression"])
+            # Select Regression Type using selectbox
+            regression_type = st.selectbox("Choose Regression Type:", ["Simple Regression", "Multiple Regression"])
 
-            num_list = data.select_dtypes(include=[np.number]).columns.tolist()
+            # Get numeric columns from the data
+            num_list = data.select_dtypes(include=["number"]).columns.tolist()
 
-            # Simple Linear Regression
             if regression_type == "Simple Regression":
                 st.markdown("### Simple Linear Regression")
                 x_col = st.selectbox("Select Independent Variable (X):", num_list)
@@ -524,16 +524,6 @@ elif choice == "Upload Your Data":
                     ax.set_ylabel(y_col)
                     st.pyplot(fig)
 
-                    # Residuals plot
-                    residuals = y - y_pred
-                    fig, ax = plt.subplots()
-                    sns.residplot(x=X[x_col], y=residuals, lowess=True, ax=ax, line_kws={"color": "red", "lw": 1})
-                    ax.set_title("Residuals Plot")
-                    ax.set_xlabel(x_col)
-                    ax.set_ylabel("Residuals")
-                    st.pyplot(fig)
-
-            # Multiple Linear Regression
             elif regression_type == "Multiple Regression":
                 st.markdown("### Multiple Linear Regression")
                 x_cols = st.multiselect("Select Independent Variables (X):", num_list)
@@ -554,13 +544,9 @@ elif choice == "Upload Your Data":
                     # Make predictions and calculate model metrics
                     y_pred = model.predict(X)
                     r2 = r2_score(y, y_pred)
-                    mse = mean_squared_error(y, y_pred)
-                    adj_r2 = 1 - (1 - r2) * (len(y) - 1) / (len(y) - X.shape[1] - 1)
 
-                    # Display R-squared, Adjusted R-squared, and MSE
+                    # Display R-squared
                     st.write(f"**R-squared:** {r2:.2f}")
-                    st.write(f"**Adjusted R-squared:** {adj_r2:.2f}")
-                    st.write(f"**Mean Squared Error (MSE):** {mse:.2f}")
 
                     # Display model coefficients
                     st.markdown("### Model Coefficients")
@@ -570,14 +556,14 @@ elif choice == "Upload Your Data":
                     })
                     st.table(coef_df)
 
-                    # Residuals plot for multiple regression
-                    residuals = y - y_pred
+                    # Plot regression line
                     fig, ax = plt.subplots()
-                    sns.residplot(x=y_pred, y=residuals, lowess=True, ax=ax, line_kws={"color": "red", "lw": 1})
-                    ax.set_title("Residuals Plot")
-                    ax.set_xlabel("Predicted Values")
-                    ax.set_ylabel("Residuals")
+                    sns.scatterplot(x=y, y=y_pred, ax=ax, label="Data vs Predicted")
+                    ax.set_title(f"Multiple Linear Regression: {y_col} vs {', '.join(x_cols)}")
+                    ax.set_xlabel("Actual Values")
+                    ax.set_ylabel("Predicted Values")
                     st.pyplot(fig)
+
             
 # Contact Us section
 elif choice == "Contact Us":
