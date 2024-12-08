@@ -478,78 +478,69 @@ elif choice == "Upload Your Data":
             else:
                 st.warning("Please select both a subgroup column and a metric column.")
 
-       # Linear Regression
-elif analysis_option == "Linear Regression":
-    st.subheader("Linear Regression")
-    st.write("Choose predictor(s) and response variable for the regression model.")
+# Linear Regression
+        elif analysis_option == "Linear Regression":
+            st.subheader("Linear Regression")
+            st.write("Choose predictor(s) and response variable for the regression model.")
 
-    num_cols = data.select_dtypes(include=np.number).columns.tolist()
+            num_cols = data.select_dtypes(include=np.number).columns.tolist()
 
-    if len(num_cols) > 1:
-        response_col = st.selectbox("Select the response (dependent) variable:", num_cols)
-        predictor_cols = st.multiselect("Select predictor (independent) variable(s):", num_cols, default=[num_cols[0]])
+            if len(num_cols) > 1:
+                response_col = st.selectbox("Select the response (dependent) variable:", num_cols)
+                predictor_cols = st.multiselect("Select predictor (independent) variable(s):", num_cols, default=[num_cols[0]])
 
-        # Drop missing values and select predictors and response
-        X = data[predictor_cols].dropna()
-        y = data[response_col].dropna()
+                X = data[predictor_cols].dropna()
+                y = data[response_col].dropna()
 
-        # Combine and drop rows with missing values
-        common_data = pd.concat([X, y], axis=1).dropna()
-        X = common_data[predictor_cols]
-        y = common_data[response_col]
+                common_data = pd.concat([X, y], axis=1).dropna()
+                X = common_data[predictor_cols]
+                y = common_data[response_col]
 
-        # Train-test split
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-        # Create and train the model
-        model = LinearRegression()
-        model.fit(X_train, y_train)
+                model = LinearRegression()
+                model.fit(X_train, y_train)
 
-        # Predictions
-        y_pred = model.predict(X_test)
+                y_pred = model.predict(X_test)
 
-        # Evaluate the model
-        mse = mean_squared_error(y_test, y_pred)
-        r2 = r2_score(y_test, y_pred)
+                mse = mean_squared_error(y_test, y_pred)
+                r2 = r2_score(y_test, y_pred)
 
-        st.write(f"**Mean Squared Error (MSE):** {mse:.4f}")
-        st.write(f"**R-squared (R²):** {r2:.4f}")
+                st.write(f"**Mean Squared Error (MSE):** {mse:.4f}")
+                st.write(f"**R-squared (R²):** {r2:.4f}")
 
-        st.write(f"**Intercept:** {model.intercept_:.4f}")
-        st.write(f"**Coefficients:**")
-        for feature, coef in zip(predictor_cols, model.coef_):
-            st.write(f"{feature}: {coef:.4f}")
+                st.write(f"**Intercept:** {model.intercept_:.4f}")
+                st.write(f"**Coefficients:**")
+                for feature, coef in zip(predictor_cols, model.coef_):
+                    st.write(f"{feature}: {coef:.4f}")
 
-        # If there is only one predictor, plot the regression line
-        if len(predictor_cols) == 1:
-            plt.figure(figsize=(10, 6))
-            plt.scatter(X_test[predictor_cols[0]], y_test, color="blue", label="Test Data")
-            plt.plot(X_test[predictor_cols[0]], y_pred, color="red", label="Regression Line")
-            plt.xlabel(predictor_cols[0])
-            plt.ylabel(response_col)
-            plt.legend()
-            st.pyplot(plt)
+                if len(predictor_cols) == 1:
+                    plt.figure(figsize=(10, 6))
+                    plt.scatter(X_test[predictor_cols[0]], y_test, color="blue", label="Test Data")
+                    plt.plot(X_test[predictor_cols[0]], y_pred, color="red", label="Regression Line")
+                    plt.xlabel(predictor_cols[0])
+                    plt.ylabel(response_col)
+                    plt.legend()
+                    st.pyplot(plt)
 
-        # For multiple predictors, visualize with pairplot
-        else:
-            st.write("Multiple predictors selected. Here is the regression model for the predictors:")
-            sns.pairplot(common_data, kind="reg", hue=response_col)
-            st.pyplot(plt)
+                else:
+                    st.write("Multiple predictors selected. Here is the regression model for the predictors:")
+                    sns.pairplot(common_data, kind="reg", hue=response_col)
+                    st.pyplot(plt)
 
-        # Download the plot option
-        if st.button("Download Plot as JPG"):
-            valid_feature_name = generate_valid_filename(f"{'_'.join(predictor_cols)}_vs_{response_col}")
-            buf = save_plot_as_jpg(plt.gcf())
-            st.download_button(
-                label="Download JPG",
-                data=buf,
-                file_name=f"{valid_feature_name}_plot.jpg",  
-                mime="image/jpeg",
-                key=str(uuid.uuid4())  
-            )
+                if st.button("Download Plot as JPG"):
+                    valid_feature_name = generate_valid_filename(f"{'_'.join(predictor_cols)}_vs_{response_col}")
+                    buf = save_plot_as_jpg(plt.gcf())
+                    st.download_button(
+                        label="Download JPG",
+                        data=buf,
+                        file_name=f"{valid_feature_name}_plot.jpg",  
+                        mime="image/jpeg",
+                        key=str(uuid.uuid4())  
+                    )
 
-    else:
-        st.write("Not enough numerical columns for Linear Regression.")
+            else:
+                st.write("Not enough numerical columns for Linear Regression.")
             
 # Contact Us section
 elif choice == "Contact Us":
