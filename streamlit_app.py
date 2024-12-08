@@ -136,6 +136,7 @@ elif choice == "Upload Your Data":
             "Plot Two Variables",
             "Plot Three Variables",
             "Variables Comparison",
+            "Subgroup Analysis"
             "Hypothesis Testing",
             "AI Analysis"
         ])
@@ -420,7 +421,45 @@ elif choice == "Upload Your Data":
                     file_name=f"{valid_feature_name}_combined_plot.jpg",  # Use valid file name
                     mime="image/jpeg"
                 )
-                        
+
+            # Subgroup Analysis
+        elif analysis_option == "Subgroup Analysis":
+            st.sidebar.header("Subgroup Analysis Settings")
+            subgroup_col = st.sidebar.selectbox("Select Subgroup Column", data.columns)
+            metric_col = st.sidebar.selectbox("Select Metric Column", data.columns)
+
+            if subgroup_col and metric_col:
+                # Drop NA values for selected columns
+                data = data[[subgroup_col, metric_col]].dropna()
+
+                # Calculate subgroup statistics
+                subgroup_stats = data.groupby(subgroup_col)[metric_col].agg(['mean', 'sum', 'std']).reset_index()
+                st.write("### Subgroup Statistics")
+                st.dataframe(subgroup_stats)
+# Chart type selection
+                chart_type = st.sidebar.selectbox("Select Chart Type", ["Bar Chart", "Pie Chart (For Totals)"])
+
+                if chart_type == "Bar Chart":
+                    # Bar chart for mean, total, and standard deviation
+                    metric = st.sidebar.selectbox("Select Metric", ['mean', 'sum', 'std'])
+                    plt.figure(figsize=(10, 6))
+                    sns.barplot(x=subgroup_col, y=metric, data=subgroup_stats.rename(columns={metric: 'value'}))
+                    plt.title(f"Bar Chart of {metric.capitalize()} by {subgroup_col}")
+                    plt.ylabel(metric.capitalize())
+                    plt.xlabel(subgroup_col)
+                    st.pyplot(plt)
+
+                elif chart_type == "Pie Chart (For Totals)":
+                    # Pie chart for total values
+                    plt.figure(figsize=(8, 8))
+                    plt.pie(subgroup_stats['sum'], labels=subgroup_stats[subgroup_col], autopct='%1.1f%%', startangle=140)
+                    plt.title(f"Pie Chart of Total {metric_col} by {subgroup_col}")
+                    st.pyplot(plt)
+
+            else:
+                st.warning("Please select both a subgroup column and a metric column.")
+
+        
             # Hypothesis Testing
         elif analysis_option == "Hypothesis Testing":
             st.subheader("Hypothesis Testing")
