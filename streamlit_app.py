@@ -30,10 +30,6 @@ def save_plot_as_jpg(fig):
     buf.seek(0)
     return buf
 
-# Define the numerical and categorical column lists based on the DataFrame
-num_list = df.select_dtypes(include=['number']).columns.tolist()
-cat_list = df.select_dtypes(include=['object', 'category']).columns.tolist()
-
 # Function for combined variable comparison
 def plot_combined_comparison(data, selected_columns, plot_type):
     plt.figure(figsize=(12, 6))
