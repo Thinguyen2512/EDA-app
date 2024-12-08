@@ -556,12 +556,20 @@ elif choice == "Upload Your Data":
                     })
                     st.table(coef_df)
 
-                    # Plot regression line
+                    # Select one independent variable to plot against the dependent variable
+                    selected_x_col = st.selectbox("Choose one Independent Variable (X) to plot", x_cols)
+                    
+                    # Predict using the selected independent variable
+                    X_plot = data[[selected_x_col]].dropna()
+                    y_pred_plot = model.predict(X_plot)
+
+                    # Scatter plot and regression line
                     fig, ax = plt.subplots()
-                    sns.scatterplot(x=y, y=y_pred, ax=ax, label="Data vs Predicted")
-                    ax.set_title(f"Multiple Linear Regression: {y_col} vs {', '.join(x_cols)}")
-                    ax.set_xlabel("Actual Values")
-                    ax.set_ylabel("Predicted Values")
+                    sns.scatterplot(x=X_plot[selected_x_col], y=y, ax=ax, label="Data")
+                    sns.lineplot(x=X_plot[selected_x_col], y=y_pred_plot, color="red", label="Regression Line", ax=ax)
+                    ax.set_title(f"Multiple Linear Regression: {y_col} vs {selected_x_col}")
+                    ax.set_xlabel(selected_x_col)
+                    ax.set_ylabel(y_col)
                     st.pyplot(fig)
 
             
