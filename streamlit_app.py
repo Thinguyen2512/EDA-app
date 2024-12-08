@@ -137,8 +137,7 @@ elif choice == "Upload Your Data":
             "Plot Three Variables",
             "Variables Comparison",
             "Subgroup Analysis",
-            "Linear Regression",
-            "AI Analysis"
+            "Linear Regression"
         ])
 
         # General filter with multiple options
@@ -536,11 +535,6 @@ elif choice == "Upload Your Data":
             else:
                 st.write("Not enough numerical columns for Linear Regression.")
             
-    # AI Analysis Placeholder (Optional)
-    elif analysis_option == "AI Analysis":
-        st.subheader("AI-based Analysis Placeholder")
-        st.write("AI analysis options will be available soon.")
-
 # Contact Us section
 elif choice == "Contact Us":
     st.subheader("Contact Us")
