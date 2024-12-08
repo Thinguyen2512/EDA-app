@@ -137,7 +137,7 @@ elif choice == "Upload Your Data":
             "Plot Three Variables",
             "Variables Comparison",
             "Subgroup Analysis",
-            "Hypothesis Testing",
+            "Linear Regression",
             "AI Analysis"
         ])
 
@@ -422,32 +422,30 @@ elif choice == "Upload Your Data":
                     mime="image/jpeg"
                 )
 
-    # Selecting columns for subgroup and metric
-    subgroup_col = st.sidebar.selectbox("Select Subgroup Column", data.columns)
-    metric_col = st.sidebar.selectbox("Select Metric Column", data.columns)
-    
-    # Ensure the metric column is numeric
-    data[metric_col] = pd.to_numeric(data[metric_col], errors='coerce')
+    # Subgroup Analysis
+        elif analysis_option == "Subgroup Analysis":
+            st.sidebar.header("Subgroup Analysis Settings")
+            subgroup_col = st.sidebar.selectbox("Select Subgroup Column", data.columns)
+            metric_col = st.sidebar.selectbox("Select Metric Column", data.columns)
+            data[metric_col] = pd.to_numeric(data[metric_col], errors='coerce')
 
-    if subgroup_col and metric_col:
-        # Drop NA values for selected columns
-        data = data[[subgroup_col, metric_col]].dropna()
-        
-        if data.empty:
-            st.warning("No valid data available for the selected columns.")
-        else:
-            # Group data by subgroup column and calculate the mean, sum, and standard deviation
-            subgroup_stats = data.groupby(subgroup_col)[metric_col].agg(['mean', 'sum', 'std']).reset_index()
-            st.write("### Subgroup Statistics")
-            st.dataframe(subgroup_stats)
+            if subgroup_col and metric_col:
+                # Drop NA values for selected columns
+                data = data[[subgroup_col, metric_col]].dropna()
+                if data.empty:
+                    st.warning("No valid data available for the selected columns.")
+                else:
+                    subgroup_stats = data.groupby(subgroup_col)[metric_col].agg(['mean', 'sum', 'std']).reset_index()
+                    st.write("### Subgroup Statistics")
+                    st.dataframe(subgroup_stats)
 
-            st.write(f"Data types: {data.dtypes}")
-            st.write(f"Data sample: {data[[subgroup_col, metric_col]].head()}")
+                st.write(f"Data types: {data.dtypes}")
+                st.write(f"Data sample: {data[[subgroup_col, metric_col]].head()}")
 
-            # Chart type selection
-            chart_type = st.sidebar.selectbox("Select Chart Type", ["Bar Chart", "Pie Chart (For Totals)"])
+    # Chart type selection
+                chart_type = st.sidebar.selectbox("Select Chart Type", ["Bar Chart", "Pie Chart"])
 
-            # Bar chart for mean, total, and standard deviation
+                # Bar chart for mean, total, and standard deviation
             if chart_type == "Bar Chart":
                 metric = st.sidebar.selectbox("Select Metric", ['mean', 'sum', 'std'])
                 
@@ -461,9 +459,9 @@ elif choice == "Upload Your Data":
                     st.pyplot(plt)
                 else:
                     st.error(f"Metric '{metric}' does not exist in the data.")
-                
-            # Pie chart for total values
-            elif chart_type == "Pie Chart (For Totals)":
+
+                # Pie chart for total values
+            elif chart_type == "Pie Chart":
                 if 'sum' in subgroup_stats.columns and subgroup_col in subgroup_stats.columns:
                     # Ensure that 'sum' is numeric
                     subgroup_stats['sum'] = pd.to_numeric(subgroup_stats['sum'], errors='coerce')
@@ -478,190 +476,89 @@ elif choice == "Upload Your Data":
                 else:
                     st.error(f"The necessary columns ('sum' and '{subgroup_col}') are not found in the data.")
 
-        
-    # Hypothesis Testing
-        elif analysis_option == "Hypothesis Testing":
-            st.subheader("Hypothesis Testing")
-            st.write("Choose a statistical test to perform on your dataset.")
+            else:
+                st.warning("Please select both a subgroup column and a metric column.")
 
-            # Test selection dropdown
-            test_type = st.selectbox(
-                "Select Test Type:",
-                ["One-sample t-test", "Two-sample t-test", "ANOVA", "Chi-Squared Test", "Linear Regression"]
+        
+    # Linear Regression (Simple and Multiple)
+elif analysis_option == "Linear Regression":
+    st.subheader("Linear Regression")
+    st.write("Choose predictor(s) and response variable for the regression model.")
+
+    # Select numerical columns (for regression variables)
+    num_cols = data.select_dtypes(include=np.number).columns.tolist()
+
+    if len(num_cols) > 1:  # Need at least one predictor and one response
+        # Select predictor (independent) and response (dependent) variables
+        response_col = st.selectbox("Select the response (dependent) variable:", num_cols)
+        predictor_cols = st.multiselect(
+            "Select predictor (independent) variable(s):",
+            num_cols,
+            default=[num_cols[0]]  # Default to the first column as a simple regression
+        )
+
+        # Prepare data for training the model
+        X = data[predictor_cols].dropna()  # Predictors (independent variables)
+        y = data[response_col].dropna()  # Response (dependent variable)
+
+        # Ensure that the number of rows matches between predictors and response
+        common_data = pd.concat([X, y], axis=1).dropna()
+        X = common_data[predictor_cols]
+        y = common_data[response_col]
+
+        # Split data into training and testing sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Create and train the Linear Regression model
+        model = LinearRegression()
+        model.fit(X_train, y_train)
+
+        # Predict values
+        y_pred = model.predict(X_test)
+
+        # Model evaluation
+        mse = mean_squared_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        st.write(f"**Mean Squared Error (MSE):** {mse:.4f}")
+        st.write(f"**R-squared (R²):** {r2:.4f}")
+
+        # Display coefficients
+        st.write(f"**Intercept:** {model.intercept_:.4f}")
+        st.write(f"**Coefficients:**")
+        for feature, coef in zip(predictor_cols, model.coef_):
+            st.write(f"{feature}: {coef:.4f}")
+
+        # Plot regression line (for simple regression or with multiple predictors)
+        plt.figure(figsize=(10, 6))
+        if len(predictor_cols) == 1:  # Simple regression (one predictor)
+            plt.scatter(X_test, y_test, color="blue", label="Test Data")
+            plt.plot(X_test, y_pred, color="red", label="Regression Line")
+            plt.xlabel(predictor_cols[0])
+            plt.ylabel(response_col)
+        else:  # Multiple regression, plotting only one of the predictors for simplicity
+            plt.scatter(X_test[predictor_cols[0]], y_test, color="blue", label="Test Data")
+            plt.plot(X_test[predictor_cols[0]], y_pred, color="red", label="Regression Line")
+            plt.xlabel(predictor_cols[0])
+            plt.ylabel(response_col)
+
+        plt.legend()
+        st.pyplot(plt)
+
+        # Add a button to download the plot as JPG
+        if st.button("Download Plot as JPG"):
+            valid_feature_name = generate_valid_filename(f"{'_'.join(predictor_cols)}_vs_{response_col}")  # Ensure valid filename
+            buf = save_plot_as_jpg(plt.gcf())
+            st.download_button(
+                label="Download JPG",
+                data=buf,
+                file_name=f"{valid_feature_name}_plot.jpg",  # Use valid file name
+                mime="image/jpeg",
+                key=str(uuid.uuid4())  # Ensure the key is unique
             )
 
-           # 1. One-sample t-test
-            if test_type == "One-sample t-test":
-                st.write("### One-sample t-test")
-                num_cols = data.select_dtypes(include=np.number).columns.tolist()
-
-                if len(num_cols) > 0:
-                    # Allow user to select numerical column
-                    column = st.selectbox("Select a numerical column:", num_cols)
-                    # Provide input for the reference value
-                    reference_value = st.number_input("Enter the reference value (e.g., population mean):", value=0)
-
-                    # Ensure the selected column is numeric and drop missing values
-                    data[column] = pd.to_numeric(data[column], errors='coerce')  # Convert to numeric
-                    clean_data = data[column].dropna()  # Remove NaNs
-
-                    # Check if clean_data is not empty before performing the t-test
-                    if clean_data.empty:
-                        st.write(f"Not enough valid data in the column {column} to perform the t-test.")
-                    else:
-                        # Perform t-test
-                        t_stat, p_value = ttest_1samp(clean_data, reference_value)
-                        st.write(f"**T-statistic:** {t_stat:.4f}")
-                        st.write(f"**P-value:** {p_value:.4f}")
-
-                        # Interpretation
-                        if p_value < 0.05:
-                            st.write("**Result:** Reject the null hypothesis (the mean is significantly different from the reference value).")
-                        else:
-                            st.write("**Result:** Fail to reject the null hypothesis (no significant difference from the reference value).")
-                else:
-                    st.write("Not enough numerical columns available for the t-test.")
-
-
-            # 2. Two-sample t-test
-            elif test_type == "Two-sample t-test":
-                st.write("### Two-sample t-test")
-                cat_cols = data.select_dtypes(include='object').columns.tolist()
-                num_cols = data.select_dtypes(include=np.number).columns.tolist()
-
-                if len(cat_cols) > 0 and len(num_cols) > 0:
-                    # Allow user to select categorical and numerical columns
-                    group_col = st.selectbox("Select the categorical column (group):", cat_cols)
-                    column = st.selectbox("Select the numerical column:", num_cols)
-
-                    # Check if column is binary for group separation
-                    unique_values = data[group_col].dropna().unique()
-                    if len(unique_values) == 2:
-                        # Perform two-sample t-test
-                        group1 = data[data[group_col] == unique_values[0]][column].dropna()
-                        group2 = data[data[group_col] == unique_values[1]][column].dropna()
-
-                        t_stat, p_value = ttest_ind(group1, group2)
-                        st.write(f"**T-statistic:** {t_stat:.4f}")
-                        st.write(f"**P-value:** {p_value:.4f}")
-
-                        # Interpretation
-                        if p_value < 0.05:
-                            st.write("**Result:** Reject the null hypothesis (the means of the two groups are significantly different).")
-                        else:
-                            st.write("**Result:** Fail to reject the null hypothesis (no significant difference between the two groups).")
-                    else:
-                        st.write("The selected categorical column does not have exactly two groups, which are required for a two-sample t-test.")
-                else:
-                    st.write("Not enough categorical or numerical columns for two-sample t-test.")
-
-            # 3. ANOVA
-            elif test_type == "ANOVA":
-                st.write("### One-way ANOVA")
-                cat_cols = data.select_dtypes(include='object').columns.tolist()
-                num_cols = data.select_dtypes(include=np.number).columns.tolist()
-
-                if cat_cols and num_cols:
-                    # Select categorical and numerical columns
-                    group_col = st.selectbox("Select the categorical column (group):", cat_cols)
-                    column = st.selectbox("Select the numerical column:", num_cols)
-
-                    # Perform ANOVA
-                    grouped_data = [data[data[group_col] == group][column].dropna() for group in data[group_col].unique()]
-                    f_stat, p_value = f_oneway(*grouped_data)
-                    st.write(f"**F-statistic:** {f_stat:.4f}")
-                    st.write(f"**P-value:** {p_value:.4f}")
-
-                    # Interpretation
-                    if p_value < 0.05:
-                        st.write("**Result:** Reject the null hypothesis (the means of the groups are significantly different).")
-                    else:
-                        st.write("**Result:** Fail to reject the null hypothesis (no significant difference between the groups).")
-                else:
-                    st.write("Not enough categorical or numerical columns for ANOVA.")
-
-            # 4. Chi-Squared Test
-            elif test_type == "Chi-Squared Test":
-                st.write("### Chi-Squared Test")
-                cat_cols = data.select_dtypes(include='object').columns.tolist()
-
-                if len(cat_cols) > 1:
-                    # Select two categorical columns for chi-squared test
-                    col1 = st.selectbox("Select the first categorical column:", cat_cols)
-                    col2 = st.selectbox("Select the second categorical column:", cat_cols)
-                    
-                    # Generate contingency table
-                    contingency_table = pd.crosstab(data[col1], data[col2])
-
-                    chi2_stat, p_value, dof, expected = chi2_contingency(contingency_table)
-                    st.write(f"**Chi2 Statistic:** {chi2_stat:.4f}")
-                    st.write(f"**P-value:** {p_value:.4f}")
-                    st.write(f"**Degrees of Freedom:** {dof}")
-
-                    # Interpretation
-                    if p_value < 0.05:
-                        st.write("**Result:** Reject the null hypothesis (there is an association between the two categorical variables).")
-                    else:
-                        st.write("**Result:** Fail to reject the null hypothesis (no significant association between the two variables).")
-                else:
-                    st.write("Not enough categorical columns for chi-squared test.")
-
-            # 5. Linear Regression
-            elif test_type == "Linear Regression":
-                st.write("### Linear Regression")
-                num_cols = data.select_dtypes(include=np.number).columns.tolist()
-
-                if len(num_cols) > 1:
-                    # User selects predictor (independent) and response (dependent) variables
-                    X_col = st.selectbox("Select predictor (independent) variable:", num_cols)
-                    Y_col = st.selectbox("Select response (dependent) variable:", num_cols)
-
-                    # Prepare data for training the model
-                    X = data[[X_col]].dropna()
-                    y = data[Y_col].dropna()
-                    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-                    # Create and train the Linear Regression model
-                    model = LinearRegression()
-                    model.fit(X_train, y_train)
-
-                    # Predict values
-                    y_pred = model.predict(X_test)
-
-                    # Model evaluation
-                    mse = mean_squared_error(y_test, y_pred)
-                    r2 = r2_score(y_test, y_pred)
-
-                    st.write(f"**Mean Squared Error:** {mse:.4f}")
-                    st.write(f"**R-squared:** {r2:.4f}")
-
-                    # Coefficients
-                    st.write(f"**Intercept:** {model.intercept_:.4f}")
-                    st.write(f"**Coefficient for {X_col}:** {model.coef_[0]:.4f}")
-                    
-                    # Plot regression line
-                    plt.figure(figsize=(10, 6))
-                    plt.scatter(X_test, y_test, color="blue", label="Test Data")
-                    plt.plot(X_test, y_pred, color="red", label="Regression Line")
-                    plt.xlabel(X_col)
-                    plt.ylabel(Y_col)
-                    plt.legend()
-                    st.pyplot(plt)
-
-                # Add a button to download the plot as JPG
-                    if st.button("Download Plot as JPG"):
-                        valid_feature_name = generate_valid_filename(f"{X_col}_vs_{Y_col}")  # Ensure valid filename
-                        buf = save_plot_as_jpg(plt.gcf())
-                        st.download_button(
-                            label="Download JPG",
-                            data=buf,
-                            file_name=f"{valid_feature_name}_plot.jpg",  # Use valid file name
-                            mime="image/jpeg",
-                            key=str(uuid.uuid4())  # Ensure the key is unique
-                        )
-
-                else:
-                    st.write("Not enough numerical columns for Linear Regression.")
+    else:
+        st.write("Not enough numerical columns for Linear Regression.")
                 
 
                 
