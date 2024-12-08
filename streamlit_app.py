@@ -427,15 +427,21 @@ elif choice == "Upload Your Data":
             st.sidebar.header("Subgroup Analysis Settings")
             subgroup_col = st.sidebar.selectbox("Select Subgroup Column", data.columns)
             metric_col = st.sidebar.selectbox("Select Metric Column", data.columns)
+            data[metric_col] = pd.to_numeric(data[metric_col], errors='coerce')
 
             if subgroup_col and metric_col:
                 # Drop NA values for selected columns
                 data = data[[subgroup_col, metric_col]].dropna()
+                if data.empty:
+                    st.warning("No valid data available for the selected columns.")
+                else:
+                    subgroup_stats = data.groupby(subgroup_col)[metric_col].agg(['mean', 'sum', 'std']).reset_index()
+                    st.write("### Subgroup Statistics")
+                    st.dataframe(subgroup_stats)
 
-                # Calculate subgroup statistics
-                subgroup_stats = data.groupby(subgroup_col)[metric_col].agg(['mean', 'sum', 'std']).reset_index()
-                st.write("### Subgroup Statistics")
-                st.dataframe(subgroup_stats)
+                st.write(f"Data types: {data.dtypes}")
+                st.write(f"Data sample: {data[[subgroup_col, metric_col]].head()}")
+
     # Chart type selection
                 chart_type = st.sidebar.selectbox("Select Chart Type", ["Bar Chart", "Pie Chart (For Totals)"])
 
