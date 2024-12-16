@@ -16,6 +16,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import uuid 
 from scipy.stats import ttest_1samp
 import statsmodels.api as sm
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 # Ensure that your column is cleaned and contains valid numeric values
 def clean_and_validate_column(data, column):
@@ -478,13 +479,15 @@ elif choice == "Upload Your Data":
                     else:
                         st.error(f"The necessary columns ('{metric}' and '{subgroup_col}') are not found in the data.")
 
-# Linear Regression
+# Linear Regression Analysis
         elif analysis_option == "Linear Regression":
             st.subheader("Linear Regression Analysis")
 
+            # Separate numeric and categorical columns
             numeric_cols = data.select_dtypes(include=["number"]).columns.tolist()
             cat_cols = data.select_dtypes(include=["object", "category"]).columns.tolist()
 
+            # Handle categorical columns
             if cat_cols:
                 st.sidebar.header("Categorical Variables")
                 selected_cat_cols = st.sidebar.multiselect("Select columns to create dummy variables:", cat_cols)
@@ -498,13 +501,21 @@ elif choice == "Upload Your Data":
                 y_col = st.selectbox("Select Dependent Variable (Y):", numeric_cols)
 
                 if x_col and y_col:
+                    # Clean and validate columns
                     X = clean_and_validate_column(data, x_col)
                     y = clean_and_validate_column(data, y_col)
+
+                    # Add constant (intercept) to independent variable
                     X = sm.add_constant(X)
+
+                    # Fit the model
                     model = sm.OLS(y, X).fit()
 
                     st.write("### Regression Results")
-                    st.text(model.summary())
+                    # Display model summary with line breaks
+                    summary = model.summary().as_text().split('\n')
+                    for line in summary:
+                        st.text(line)
 
                     # Residual Plot
                     st.write("### Residual Plot")
@@ -521,16 +532,26 @@ elif choice == "Upload Your Data":
                 y_col = st.selectbox("Select Dependent Variable (Y):", numeric_cols)
 
                 if x_cols and y_col:
+                    # Drop missing values
                     X = data[x_cols].dropna()
                     y = data[y_col].dropna()
+
+                    # Find common index to ensure both X and y have matching rows
                     common_index = X.index.intersection(y.index)
                     X = X.loc[common_index]
                     y = y.loc[common_index]
+
+                    # Add constant (intercept) to independent variables
                     X = sm.add_constant(X)
+
+                    # Fit the model
                     model = sm.OLS(y, X).fit()
 
                     st.write("### Regression Results")
-                    st.text(model.summary())
+                    # Display model summary with line breaks
+                    summary = model.summary().as_text().split('\n')
+                    for line in summary:
+                        st.text(line)
 
                     # Variance Inflation Factor (VIF)
                     st.write("### Multicollinearity Check (VIF)")
