@@ -422,7 +422,7 @@ elif choice == "Upload Your Data":
                 )
 
 # Subgroup Analysis
-        if analysis_option == "Subgroup Analysis":
+        elif analysis_option == "Subgroup Analysis":
             st.sidebar.header("Subgroup Analysis Settings")
             subgroup_col = st.sidebar.selectbox("Select Subgroup Column", data.columns)
             metric_col = st.sidebar.selectbox("Select Metric Column", data.columns)
@@ -477,80 +477,76 @@ elif choice == "Upload Your Data":
                     else:
                         st.error(f"The necessary columns ('{metric}' and '{subgroup_col}') are not found in the data.")
 
-    elif analysis_option == "Linear Regression":
-        st.subheader("Linear Regression Analysis")
+# Linear Regression
+        elif analysis_option == "Linear Regression":
+            st.subheader("Linear Regression Analysis")
 
-        # Get numeric columns
-        numeric_cols = data.select_dtypes(include=["number"]).columns.tolist()
+            numeric_cols = data.select_dtypes(include=["number"]).columns.tolist()
+            cat_cols = data.select_dtypes(include=["object", "category"]).columns.tolist()
 
-        # User can choose columns to convert to dummy variables
-        cat_cols = data.select_dtypes(include=['object', 'category']).columns.tolist()
-        if cat_cols:
-            st.sidebar.header("Categorical Variables")
-            selected_cat_cols = st.sidebar.multiselect("Select columns to create dummy variables:", cat_cols)
-            if selected_cat_cols:
-                data = pd.get_dummies(data, columns=selected_cat_cols, drop_first=True)
+            if cat_cols:
+                st.sidebar.header("Categorical Variables")
+                selected_cat_cols = st.sidebar.multiselect("Select columns to create dummy variables:", cat_cols)
+                if selected_cat_cols:
+                    data = pd.get_dummies(data, columns=selected_cat_cols, drop_first=True)
 
-        # Regression type selection
-        regression_type = st.radio("Choose Regression Type:", ["Simple Regression", "Multiple Regression"])
+            regression_type = st.radio("Choose Regression Type:", ["Simple Regression", "Multiple Regression"])
 
-        if regression_type == "Simple Regression":
-            x_col = st.selectbox("Select Independent Variable (X):", numeric_cols)
-            y_col = st.selectbox("Select Dependent Variable (Y):", numeric_cols)
+            if regression_type == "Simple Regression":
+                x_col = st.selectbox("Select Independent Variable (X):", numeric_cols)
+                y_col = st.selectbox("Select Dependent Variable (Y):", numeric_cols)
 
-            if x_col and y_col:
-                X = clean_and_validate_column(data, x_col)
-                y = clean_and_validate_column(data, y_col)
-                X = sm.add_constant(X)
+                if x_col and y_col:
+                    X = clean_and_validate_column(data, x_col)
+                    y = clean_and_validate_column(data, y_col)
+                    X = sm.add_constant(X)
+                    model = sm.OLS(y, X).fit()
 
-                model = sm.OLS(y, X).fit()
+                    st.write("### Regression Results")
+                    st.text(model.summary())
 
-                st.write("### Regression Results")
-                st.text(model.summary())
+                    # Residual Plot
+                    st.write("### Residual Plot")
+                    residuals = model.resid
+                    fig, ax = plt.subplots()
+                    sns.residplot(x=model.fittedvalues, y=residuals, lowess=True, ax=ax, line_kws={"color": "red"})
+                    ax.set_xlabel("Fitted Values")
+                    ax.set_ylabel("Residuals")
+                    ax.set_title("Residuals vs Fitted")
+                    st.pyplot(fig)
 
-                # Residual Plot
-                st.write("### Residual Plot")
-                residuals = model.resid
-                fig, ax = plt.subplots()
-                sns.residplot(x=model.fittedvalues, y=residuals, lowess=True, ax=ax, line_kws={'color': 'red'})
-                ax.set_xlabel("Fitted Values")
-                ax.set_ylabel("Residuals")
-                ax.set_title("Residuals vs Fitted")
-                st.pyplot(fig)
+            elif regression_type == "Multiple Regression":
+                x_cols = st.multiselect("Select Independent Variables (X):", numeric_cols)
+                y_col = st.selectbox("Select Dependent Variable (Y):", numeric_cols)
 
-        elif regression_type == "Multiple Regression":
-            x_cols = st.multiselect("Select Independent Variables (X):", numeric_cols)
-            y_col = st.selectbox("Select Dependent Variable (Y):", numeric_cols)
+                if x_cols and y_col:
+                    X = data[x_cols].dropna()
+                    y = data[y_col].dropna()
+                    common_index = X.index.intersection(y.index)
+                    X = X.loc[common_index]
+                    y = y.loc[common_index]
+                    X = sm.add_constant(X)
+                    model = sm.OLS(y, X).fit()
 
-            if x_cols and y_col:
-                X = data[x_cols].dropna()
-                y = data[y_col].dropna()
-                common_index = X.index.intersection(y.index)
-                X = X.loc[common_index]
-                y = y.loc[common_index]
+                    st.write("### Regression Results")
+                    st.text(model.summary())
 
-                X = sm.add_constant(X)
-                model = sm.OLS(y, X).fit()
+                    # Variance Inflation Factor (VIF)
+                    st.write("### Multicollinearity Check (VIF)")
+                    vif_data = pd.DataFrame()
+                    vif_data["Feature"] = X.columns
+                    vif_data["VIF"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+                    st.table(vif_data)
 
-                st.write("### Regression Results")
-                st.text(model.summary())
-
-                # Variance Inflation Factor (VIF)
-                st.write("### Multicollinearity Check (VIF)")
-                vif_data = pd.DataFrame()
-                vif_data["Feature"] = X.columns
-                vif_data["VIF"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
-                st.table(vif_data)
-
-                # Residual Plot
-                st.write("### Residual Plot")
-                residuals = model.resid
-                fig, ax = plt.subplots()
-                sns.residplot(x=model.fittedvalues, y=residuals, lowess=True, ax=ax, line_kws={'color': 'red'})
-                ax.set_xlabel("Fitted Values")
-                ax.set_ylabel("Residuals")
-                ax.set_title("Residuals vs Fitted")
-                st.pyplot(fig)
+                    # Residual Plot
+                    st.write("### Residual Plot")
+                    residuals = model.resid
+                    fig, ax = plt.subplots()
+                    sns.residplot(x=model.fittedvalues, y=residuals, lowess=True, ax=ax, line_kws={"color": "red"})
+                    ax.set_xlabel("Fitted Values")
+                    ax.set_ylabel("Residuals")
+                    ax.set_title("Residuals vs Fitted")
+                    st.pyplot(fig)
             
 # Contact Us section
 elif choice == "Contact Us":
