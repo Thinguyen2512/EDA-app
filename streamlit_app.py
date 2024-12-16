@@ -15,6 +15,7 @@ import io
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import uuid 
 from scipy.stats import ttest_1samp
+import statsmodels.api as sm
 
 # Ensure that your column is cleaned and contains valid numeric values
 def clean_and_validate_column(data, column):
