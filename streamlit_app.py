@@ -21,44 +21,25 @@ import base64
 import os
 import openai
 
-def ai_analysis(image_base64):
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=f"Analyze the following chart encoded in Base64:\n\n{image_base64}",
-        max_tokens=150
-    )
-    return response["choices"][0]["text"]
-
-# Helper function to save chart and return Base64 encoded string
-def chart_to_base64(fig, filename="chart.jpg"):
-    filepath = os.path.join(os.getcwd(), filename)
-    fig.savefig(filepath, format="jpg", dpi=300, bbox_inches="tight")
-    
-    # Read file and encode to Base64
-    with open(filepath, "rb") as file:
-        encoded = base64.b64encode(file.read()).decode("utf-8")
-    return encoded, filepath
-
-# AI Analysis function placeholder (integration with GPT or any other AI service)
-def ai_analysis(image_base64):
-    # Here we simulate the output from AI (like GPT or other services)
-    # In a real implementation, you would send `image_base64` to your API and get the result.
-    return "This chart shows a general upward trend with some outliers indicating potential anomalies."
-
-# Example integration of AI Analysis after generating a chart
+# Updated AI Analysis Integration Function
 def add_ai_analysis(fig, title="AI Analysis", filename="chart.jpg"):
     # Save chart and get Base64 string
     image_base64, filepath = chart_to_base64(fig, filename)
     
-    # Display chart
-    st.write("Generated Chart:")
-    st.image(filepath, use_column_width=True)
-
     # AI Analysis
     if st.button("Run AI Analysis"):
         st.write("### AI Analysis Result")
         analysis_result = ai_analysis(image_base64)
         st.write(analysis_result)
+
+    # Display chart and download option
+    st.write("### Download Chart")
+    st.download_button(
+        label="Download Chart as JPG",
+        data=save_plot_as_jpg(fig),
+        file_name=filename,
+        mime="image/jpeg"
+    )
 
 # Ensure that your column is cleaned and contains valid numeric values
 def clean_and_validate_column(data, column):
@@ -67,7 +48,12 @@ def clean_and_validate_column(data, column):
     clean_data = data[column].dropna()  # Drop NaN values
     return clean_data
     
-
+# Helper function to save plot as JPG
+def save_plot_as_jpg(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format="jpg", dpi=300, bbox_inches="tight")
+    buf.seek(0)
+    return buf
 
 # Function for combined variable comparison
 def plot_combined_comparison(data, selected_columns, plot_type):
