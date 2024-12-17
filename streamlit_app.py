@@ -491,90 +491,69 @@ elif choice == "Upload Your Data":
             # Separate numeric and categorical columns
             numeric_cols = data.select_dtypes(include=["number"]).columns.tolist()
             cat_cols = data.select_dtypes(include=["object", "category"]).columns.tolist()
-
+            
             # Handle categorical columns
             if cat_cols:
                 st.sidebar.header("Categorical Variables")
                 selected_cat_cols = st.sidebar.multiselect("Select columns to create dummy variables:", cat_cols)
                 if selected_cat_cols:
                     data = pd.get_dummies(data, columns=selected_cat_cols, drop_first=True)
+            
+            # Only Multiple Regression        
+            x_cols = st.multiselect("Select Independent Variables (X):", numeric_cols)
+            y_col = st.selectbox("Select Dependent Variable (Y):", numeric_cols)
 
-            regression_type = st.radio("Choose Regression Type:", ["Simple Regression", "Multiple Regression"])
+            if x_cols and y_col:
+                # Drop missing values
+                X = data[x_cols].dropna()
+                y = data[y_col].dropna()
+                
+                # Find common index to ensure both X and y have matching rows
+                common_index = X.index.intersection(y.index)
+                X = X.loc[common_index]
+                y = y.loc[common_index]
+                
+                # Add constant (intercept) to independent variables
+                X = sm.add_constant(X)
+                
+                # Fit the model
+                model = sm.OLS(y, X).fit()
+                st.write("### Regression Results")
+                st.write(
+                    pd.DataFrame(
+                        {
+                            "Coefficients": model.params,
+                            "P-Values": model.pvalues,
+                            "Confidence Interval (2.5%)": model.conf_int()[0],
+                            "Confidence Interval (97.5%)": model.conf_int()[1],
+                        }
+                    )
+                )
+                st.write("### Model Performance")
+                st.write(f"R-squared: {model.rsquared:.4f}")
+                st.write(f"Adjusted R-squared: {model.rsquared_adj:.4f}")
+                st.write(f"F-statistic: {model.fvalue:.2f} (p-value: {model.f_pvalue:.4e})")
+                
+                # Variance Inflation Factor (VIF)
+                st.write("### Multicollinearity Check (VIF)")
+                vif_data = pd.DataFrame()
+                vif_data["Feature"] = X.columns
+                vif_data["VIF"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+                st.table(vif_data)
+                
+                # Residual Plot
+                st.write("### Residual Plot")
+                residuals = model.resid
+                fig, ax = plt.subplots()
+                sns.residplot(x=model.fittedvalues, y=residuals, lowess=True, ax=ax, line_kws={"color": "red"})
+                ax.set_xlabel("Fitted Values")
+                ax.set_ylabel("Residuals")
+                ax.set_title("Residuals vs Fitted")
+                st.pyplot(fig)
 
-            if regression_type == "Simple Regression":
-                x_col = st.selectbox("Select Independent Variable (X):", numeric_cols)
-                y_col = st.selectbox("Select Dependent Variable (Y):", numeric_cols)
 
-                if x_col and y_col:
-                    # Clean and validate columns
-                    X = clean_and_validate_column(data, x_col)
-                    y = clean_and_validate_column(data, y_col)
 
-                    # Add constant (intercept) to independent variable
-                    X = sm.add_constant(X)
-
-                    # Fit the model
-                    model = sm.OLS(y, X).fit()
-
-                    st.write("### Regression Results")
-                    # Display model summary with line breaks
-                    summary = model.summary().as_text().split('\n')
-                    for line in summary:
-                        st.text(line)
-
-                    # Residual Plot
-                    st.write("### Residual Plot")
-                    residuals = model.resid
-                    fig, ax = plt.subplots()
-                    sns.residplot(x=model.fittedvalues, y=residuals, lowess=True, ax=ax, line_kws={"color": "red"})
-                    ax.set_xlabel("Fitted Values")
-                    ax.set_ylabel("Residuals")
-                    ax.set_title("Residuals vs Fitted")
-                    st.pyplot(fig)
-
-            elif regression_type == "Multiple Regression":
-                x_cols = st.multiselect("Select Independent Variables (X):", numeric_cols)
-                y_col = st.selectbox("Select Dependent Variable (Y):", numeric_cols)
-
-                if x_cols and y_col:
-                    # Drop missing values
-                    X = data[x_cols].dropna()
-                    y = data[y_col].dropna()
-
-                    # Find common index to ensure both X and y have matching rows
-                    common_index = X.index.intersection(y.index)
-                    X = X.loc[common_index]
-                    y = y.loc[common_index]
-
-                    # Add constant (intercept) to independent variables
-                    X = sm.add_constant(X)
-
-                    # Fit the model
-                    model = sm.OLS(y, X).fit()
-
-                    st.write("### Regression Results")
-                    # Display model summary with line breaks
-                    summary = model.summary().as_text().split('\n')
-                    for line in summary:
-                        st.text(line)
-
-                    # Variance Inflation Factor (VIF)
-                    st.write("### Multicollinearity Check (VIF)")
-                    vif_data = pd.DataFrame()
-                    vif_data["Feature"] = X.columns
-                    vif_data["VIF"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
-                    st.table(vif_data)
-
-                    # Residual Plot
-                    st.write("### Residual Plot")
-                    residuals = model.resid
-                    fig, ax = plt.subplots()
-                    sns.residplot(x=model.fittedvalues, y=residuals, lowess=True, ax=ax, line_kws={"color": "red"})
-                    ax.set_xlabel("Fitted Values")
-                    ax.set_ylabel("Residuals")
-                    ax.set_title("Residuals vs Fitted")
-                    st.pyplot(fig)
-                    
+           
                     # Add a button to download the plot as JPG
             if st.button("Download Plot as JPG"):
                 valid_feature_name = generate_valid_filename(feature)  # Ensure valid filename
