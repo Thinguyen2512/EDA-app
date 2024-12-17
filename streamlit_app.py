@@ -524,6 +524,7 @@ elif choice == "Upload Your Data":
                         {
                             "Coefficients": model.params,
                             "P-Values": model.pvalues,
+                            "T-Statistics": model.tvalues,
                             "Confidence Interval (2.5%)": model.conf_int()[0],
                             "Confidence Interval (97.5%)": model.conf_int()[1],
                         }
@@ -532,7 +533,8 @@ elif choice == "Upload Your Data":
                 st.write("### Model Performance")
                 st.write(f"R-squared: {model.rsquared:.4f}")
                 st.write(f"Adjusted R-squared: {model.rsquared_adj:.4f}")
-                st.write(f"F-statistic: {model.fvalue:.2f} (p-value: {model.f_pvalue:.4e})")
+                st.write(f"F-statistic: {model.fvalue:.2f}")
+                st.write(f"F-statistic p-value: {model.f_pvalue:.4e}")
                 
                 # Variance Inflation Factor (VIF)
                 st.write("### Multicollinearity Check (VIF)")
