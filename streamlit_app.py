@@ -477,8 +477,9 @@ elif choice == "Upload Your Data":
                 plt.figure(figsize=(12, 6))
                 plot_combined_comparison(data, selected_columns, plot_type)
                 fig = plt.gcf()
-                add_ai_analysis(fig, title="AI Analysis for Variables Comparison")
-
+                selected_column = selected_columns[0]
+                add_ai_analysis(fig, data, selected_column, title="AI Analysis for Variables Comparison")
+                
         # Add a button to download the plot as JPG
             if st.button("Download Plot as JPG", key="variables_comparison_download"):
                 valid_feature_name = generate_valid_filename('_'.join(selected_columns))  # Đảm bảo tên hợp lệ
