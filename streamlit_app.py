@@ -494,6 +494,7 @@ elif choice == "Upload Your Data":
                             plt.ylabel(metric.capitalize())
                             plt.xlabel(subgroup_col)
                             fig = plt.gcf()
+                            st.pyplot(fig)
                         else:
                             st.error(f"Metric '{metric}' does not exist in the subgroup statistics.")
                     elif chart_type == "Pie Chart":
