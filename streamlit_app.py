@@ -471,6 +471,18 @@ elif choice == "Upload Your Data":
                                 
             except ValueError as e:
                 st.error(f"An error occurred: {str(e)}. Please check your data and try again.")
+
+        # Add a button to download the plot as JPG
+            if st.button("Download Plot as JPG"):
+                valid_feature_name = generate_valid_filename(feature)  # Ensure valid filename
+                buf = save_plot_as_jpg(plt.gcf())
+                st.download_button(
+                    label="Download JPG",
+                    data=buf,
+                    file_name=f"{valid_feature_name}_plot.jpg",  # Use valid file name
+                    mime="image/jpeg",
+                    key=str(uuid.uuid4())  # Ensure the key is unique
+                )
                 
 # Linear Regression Analysis
         elif analysis_option == "Linear Regression":
@@ -562,6 +574,18 @@ elif choice == "Upload Your Data":
                     ax.set_ylabel("Residuals")
                     ax.set_title("Residuals vs Fitted")
                     st.pyplot(fig)
+                    
+                    # Add a button to download the plot as JPG
+            if st.button("Download Plot as JPG"):
+                valid_feature_name = generate_valid_filename(feature)  # Ensure valid filename
+                buf = save_plot_as_jpg(plt.gcf())
+                st.download_button(
+                    label="Download JPG",
+                    data=buf,
+                    file_name=f"{valid_feature_name}_plot.jpg",  # Use valid file name
+                    mime="image/jpeg",
+                    key=str(uuid.uuid4())  # Ensure the key is unique
+                )
             
 # Contact Us section
 elif choice == "Contact Us":
