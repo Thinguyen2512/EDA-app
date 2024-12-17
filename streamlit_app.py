@@ -457,18 +457,7 @@ elif choice == "Upload Your Data":
                 plot_combined_comparison(data, selected_columns, plot_type)
                 fig = plt.gcf()
                 add_ai_analysis(fig, title="AI Analysis for Variables Comparison")
-           
-            # Add a button to download the plot as JPG
-            if st.button("Download Plot as JPG", key="variables_comparison_download"):
-                valid_feature_name = generate_valid_filename('_'.join(selected_columns))  # Đảm bảo tên hợp lệ
-                buf = save_plot_as_jpg(fig)
-                st.download_button(
-                    label="Download JPG",
-                    data=buf,
-                    file_name=f"{valid_feature_name}_combined_plot.jpg",
-                    mime="image/jpeg",
-                    key="variables_comparison_file"
-                )
+        
 
 # Subgroup Analysis
         elif analysis_option == "Subgroup Analysis":
