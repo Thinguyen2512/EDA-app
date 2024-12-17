@@ -21,43 +21,64 @@ import base64
 import os
 import openai
 
-def ai_analysis(image_base64):
-    response = openai.Completion.create(
-        engine="text-davinci-003",
-        prompt=f"Analyze the following chart encoded in Base64:\n\n{image_base64}",
-        max_tokens=150
-    )
-    return response["choices"][0]["text"]
+# Set up OpenAI API Key (Replace with your API Key)
+openai.api_key = "YOUR_OPENAI_API_KEY"
 
-# Helper function to save chart and return Base64 encoded string
+# Function to save chart and return Base64 encoded string
 def chart_to_base64(fig, filename="chart.jpg"):
-    filepath = os.path.join(os.getcwd(), filename)
-    fig.savefig(filepath, format="jpg", dpi=300, bbox_inches="tight")
-    
-    # Read file and encode to Base64
-    with open(filepath, "rb") as file:
-        encoded = base64.b64encode(file.read()).decode("utf-8")
-    return encoded, filepath
+    buf = io.BytesIO()
+    fig.savefig(buf, format="jpg", dpi=300, bbox_inches="tight")
+    buf.seek(0)
+    encoded = base64.b64encode(buf.read()).decode("utf-8")
+    return encoded
 
-# AI Analysis function placeholder (integration with GPT or any other AI service)
-def ai_analysis(image_base64):
-    # Here we simulate the output from AI (like GPT or other services)
-    # In a real implementation, you would send image_base64 to your API and get the result.
-    return "This chart shows a general upward trend with some outliers indicating potential anomalies."
+# Function to send image Base64 and prompt for AI Analysis
+def ai_analysis(image_base64, data_summary, trend):
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are an AI analyst who provides detailed insights on charts and predicts future trends based on patterns."},
+            {"role": "user", "content": f"Analyze this chart with the following details:\n\n{data_summary}\n\nThe data shows a trend of {trend}. Predict what might happen in the future."}
+        ],
+        max_tokens=300
+    )
+    return response["choices"][0]["message"]["content"]
 
-# Example integration of AI Analysis after generating a chart
-def add_ai_analysis(fig, title="AI Analysis", filename="chart.jpg"):
-    # Save chart and get Base64 string
-    image_base64, filepath = chart_to_base64(fig, filename)
+# Predict future trend using Linear Regression
+def predict_trend(data, column):
+    # Prepare data for prediction
+    x = np.array(range(len(data))).reshape(-1, 1)  # Time index as X
+    y = data[column].dropna().values  # Target variable
+    if len(y) < 2:
+        return "Not enough data to predict trend."
+
+    # Fit a simple Linear Regression model
+    model = LinearRegression()
+    model.fit(x[:len(y)], y)
+
+    # Predict future values
+    future_x = np.array(range(len(data) + 10)).reshape(-1, 1)  # Next 10 points
+    future_y = model.predict(future_x)
+
+    return "The trend shows a general increase." if model.coef_[0] > 0 else "The trend shows a decrease."
+
+# Add AI Analysis to the chart
+def add_ai_analysis(fig, data, selected_column, title="AI Analysis"):
+    # Save chart to Base64
+    image_base64 = chart_to_base64(fig)
     
+    # Summarize data statistics
+    data_summary = data[selected_column].describe().to_string()
+    trend_prediction = predict_trend(data, selected_column)
+
     # Display chart
-    st.write("Generated Chart:")
-    st.image(filepath, use_column_width=True)
+    st.write("### Generated Chart:")
+    st.pyplot(fig)
 
     # AI Analysis
     if st.button("Run AI Analysis"):
-        st.write("### AI Analysis Result")
-        analysis_result = ai_analysis(image_base64)
+        st.write("### AI Analysis Result:")
+        analysis_result = ai_analysis(image_base64, data_summary, trend_prediction)
         st.write(analysis_result)
 
 # Ensure that your column is cleaned and contains valid numeric values
