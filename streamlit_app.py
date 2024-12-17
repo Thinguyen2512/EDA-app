@@ -40,7 +40,8 @@ def ai_analysis(image_base64, data_summary, trend):
             {"role": "system", "content": "You are an AI analyst who provides detailed insights on charts and predicts future trends based on patterns."},
             {"role": "user", "content": f"Analyze this chart with the following details:\n\n{data_summary}\n\nThe data shows a trend of {trend}. Predict what might happen in the future."}
         ],
-        max_tokens=300
+        max_tokens=300,  # Optional, include if needed
+        temperature=0.7  # Optional parameter
     )
     return response["choices"][0]["message"]["content"]
 
