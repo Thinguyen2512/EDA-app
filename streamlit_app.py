@@ -33,17 +33,23 @@ def chart_to_base64(fig, filename="chart.jpg"):
     return encoded
 
 # Function to send image Base64 and prompt for AI Analysis
-def ai_analysis(image_base64, data_summary, trend):
+import openai
+
+def ai_analysis(image_base64, data_summary, trend_prediction):
+    # Make sure you use the correct model, like "gpt-3.5-turbo" or "gpt-4"
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-4",  # You can choose "gpt-4" or "gpt-3.5-turbo" depending on your plan
         messages=[
             {"role": "system", "content": "You are an AI analyst who provides detailed insights on charts and predicts future trends based on patterns."},
-            {"role": "user", "content": f"Analyze this chart with the following details:\n\n{data_summary}\n\nThe data shows a trend of {trend}. Predict what might happen in the future."}
+            {"role": "user", "content": f"Analyze this chart with the following details:\n\n{data_summary}\n\nThe data shows a trend of {trend_prediction}. Predict what might happen in the future."}
         ],
-        max_tokens=300,  # Optional, include if needed
-        temperature=0.7  # Optional parameter
+        max_tokens=300,  # You can adjust this depending on the output length you need
+        temperature=0.7   # Adjust temperature for more or less creativity
     )
-    return response["choices"][0]["message"]["content"]
+
+    # Return the AI analysis response
+    return response['choices'][0]['message']['content']
+
 
 # Predict future trend using Linear Regression
 def predict_trend(data, column):
