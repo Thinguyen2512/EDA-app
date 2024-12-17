@@ -17,6 +17,39 @@ import uuid
 from scipy.stats import ttest_1samp
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
+import base64
+import os
+
+# Helper function to save chart and return Base64 encoded string
+def chart_to_base64(fig, filename="chart.jpg"):
+    filepath = os.path.join(os.getcwd(), filename)
+    fig.savefig(filepath, format="jpg", dpi=300, bbox_inches="tight")
+    
+    # Read file and encode to Base64
+    with open(filepath, "rb") as file:
+        encoded = base64.b64encode(file.read()).decode("utf-8")
+    return encoded, filepath
+
+# AI Analysis function placeholder (integration with GPT or any other AI service)
+def ai_analysis(image_base64):
+    # Here we simulate the output from AI (like GPT or other services)
+    # In a real implementation, you would send `image_base64` to your API and get the result.
+    return "This chart shows a general upward trend with some outliers indicating potential anomalies."
+
+# Example integration of AI Analysis after generating a chart
+def add_ai_analysis(fig, title="AI Analysis", filename="chart.jpg"):
+    # Save chart and get Base64 string
+    image_base64, filepath = chart_to_base64(fig, filename)
+    
+    # Display chart
+    st.write("Generated Chart:")
+    st.image(filepath, use_column_width=True)
+
+    # AI Analysis
+    if st.button("Run AI Analysis"):
+        st.write("### AI Analysis Result")
+        analysis_result = ai_analysis(image_base64)
+        st.write(analysis_result)
 
 # Ensure that your column is cleaned and contains valid numeric values
 def clean_and_validate_column(data, column):
@@ -410,8 +443,12 @@ elif choice == "Upload Your Data":
             st.subheader("Variables Comparison")
             selected_columns = st.multiselect("Select variables for comparison", data.columns.tolist())
             plot_type = st.selectbox("Select comparison plot type", ["Density Plot", "Boxplot"])
-            plot_combined_comparison(data, selected_columns, plot_type)
-
+            if selected_columns:
+                plt.figure(figsize=(12, 6))
+                plot_combined_comparison(data, selected_columns, plot_type)
+                fig = plt.gcf()  # Get the current figure
+                add_ai_analysis(fig, title="AI Analysis for Variables Comparison")
+           
             # Add a button to download the plot as JPG
             if st.button("Download Plot as JPG"):
                 valid_feature_name = generate_valid_filename('_'.join(selected_columns))  # Ensure valid filename
@@ -552,6 +589,9 @@ elif choice == "Upload Your Data":
                 ax.set_ylabel("Residuals")
                 ax.set_title("Residuals vs Fitted")
                 st.pyplot(fig)
+                
+                # Add AI Analysis
+                add_ai_analysis(fig, title="AI Analysis for Residual Plot")
 
 
 
