@@ -482,6 +482,7 @@ elif choice == "Upload Your Data":
             plot_type = st.selectbox("Select comparison plot type", ["Density Plot", "Boxplot"])
             if selected_columns:
                 plt.figure(figsize=(12, 6))
+                plot_combined_comparison(data, selected_columns, plot_type)
                 fig = plt.gcf()
                 selected_column = selected_columns[0]
                 add_ai_analysis(fig, data, selected_column, title="AI Analysis for Variables Comparison")
