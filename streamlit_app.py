@@ -29,7 +29,6 @@ def ai_analysis(image_base64):
     )
     return response["choices"][0]["text"]
 
-
 # Helper function to save chart and return Base64 encoded string
 def chart_to_base64(fig, filename="chart.jpg"):
     filepath = os.path.join(os.getcwd(), filename)
@@ -456,7 +455,6 @@ elif choice == "Upload Your Data":
             if selected_columns:
                 plt.figure(figsize=(12, 6))
                 plot_combined_comparison(data, selected_columns, plot_type)
-                fig = plt.gcf()  # Get the current figure
                 add_ai_analysis(fig, title="AI Analysis for Variables Comparison")
            
             # Add a button to download the plot as JPG
