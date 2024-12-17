@@ -24,7 +24,6 @@ from openai import OpenAI
 
 # Set up OpenAI API Key (Replace with your API Key)
 openai.api_key = "YOUR_OPENAI_API_KEY"
-client = OpenAI()
 
 # Function to encode the image
 def encode_image(image_path):
