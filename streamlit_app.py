@@ -20,6 +20,7 @@ from statsmodels.stats.outliers_influence import variance_inflation_factor
 import base64
 import os
 import openai
+from openai import OpenAI
 
 # Set up OpenAI API Key (Replace with your API Key)
 openai.api_key = "YOUR_OPENAI_API_KEY"
@@ -50,7 +51,6 @@ def ai_analysis(image_base64, data_summary, trend_prediction):
     # Return the AI analysis response
     return response['choices'][0]['message']['content']
 
-export OPENAI_API_KEY="your-api-key-here"
 
 # Predict future trend using Linear Regression
 def predict_trend(data, column):
