@@ -19,6 +19,16 @@ import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 import base64
 import os
+import openai
+
+def ai_analysis(image_base64):
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=f"Analyze the following chart encoded in Base64:\n\n{image_base64}",
+        max_tokens=150
+    )
+    return response["choices"][0]["text"]
+
 
 # Helper function to save chart and return Base64 encoded string
 def chart_to_base64(fig, filename="chart.jpg"):
