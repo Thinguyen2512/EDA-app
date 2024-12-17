@@ -50,6 +50,7 @@ def ai_analysis(image_base64, data_summary, trend_prediction):
     # Return the AI analysis response
     return response['choices'][0]['message']['content']
 
+export OPENAI_API_KEY="your-api-key-here"
 
 # Predict future trend using Linear Regression
 def predict_trend(data, column):
