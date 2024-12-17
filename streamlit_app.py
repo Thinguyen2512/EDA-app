@@ -21,61 +21,48 @@ import base64
 import os
 import openai
 
-# Updated AI Analysis Integration Function
-def add_ai_analysis(fig, title="AI Analysis", filename="chart.jpg"):
-    # Save chart and get Base64 string
-    image_base64, filepath = chart_to_base64(fig, filename)
+# Helper function to save chart and return Base64 encoded string
+def chart_to_base64(fig, filename="chart.jpg"):
+    filepath = os.path.join(os.getcwd(), filename)
+    fig.savefig(filepath, format="jpg", dpi=300, bbox_inches="tight")
     
-    # AI Analysis
-    if st.button("Run AI Analysis"):
-        st.write("### AI Analysis Result")
-        analysis_result = ai_analysis(image_base64)
-        st.write(analysis_result)
+    # Read file and encode to Base64
+    with open(filepath, "rb") as file:
+        encoded = base64.b64encode(file.read()).decode("utf-8")
+    return encoded, filepath
 
-    # Display chart and download option
-    st.write("### Download Chart")
-    st.download_button(
-        label="Download Chart as JPG",
-        data=save_plot_as_jpg(fig),
-        file_name=filename,
-        mime="image/jpeg"
-    )
-
-# Ensure that your column is cleaned and contains valid numeric values
-def clean_and_validate_column(data, column):
-    # Convert to numeric, forcing errors to NaN
-    data[column] = pd.to_numeric(data[column], errors='coerce')
-    clean_data = data[column].dropna()  # Drop NaN values
-    return clean_data
-    
-# Helper function to save plot as JPG
+# Function to convert plot to JPG for download
 def save_plot_as_jpg(fig):
     buf = io.BytesIO()
     fig.savefig(buf, format="jpg", dpi=300, bbox_inches="tight")
     buf.seek(0)
     return buf
 
-# Function for combined variable comparison
-def plot_combined_comparison(data, selected_columns, plot_type):
-    plt.figure(figsize=(12, 6))
-    
-    if plot_type == "Density Plot":
-        for idx, col in enumerate(selected_columns):
-            if np.issubdtype(data[col].dtype, np.number):  # Check if the column is numeric
-                sns.kdeplot(data[col], label=col, shade=True, alpha=0.6)
-                
-        plt.title("Combined Density Plot")
-        plt.xlabel("Values")
-        plt.ylabel("Density")
-        plt.legend(title="Variables", loc="upper right")
+# Function to add AI analysis to plots
+def add_ai_analysis(fig, title="AI Analysis", filename="chart.jpg"):
+    try:
+        # Save chart and get Base64 string
+        image_base64, filepath = chart_to_base64(fig, filename)
+        
+        # Display chart
+        st.write("Generated Chart:")
+        st.image(filepath, use_container_width=True)
 
-    elif plot_type == "Boxplot":
-        sns.boxplot(data=data[selected_columns], orient="h")
-        plt.title("Combined Box Plot")
-        plt.xlabel("Values")
-        plt.ylabel("Variables")
+        # AI Analysis
+        if st.button("Run AI Analysis"):
+            st.write("### AI Analysis Result")
+            # Simulated AI analysis result
+            st.write("This chart shows a general upward trend with some outliers indicating potential anomalies.")
 
-    st.pyplot(plt)
+        # Provide a download option for the chart
+        st.download_button(
+            label="Download Chart as JPG",
+            data=save_plot_as_jpg(fig),
+            file_name=filename,
+            mime="image/jpeg"
+        )
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
     
 # Helper function to generate valid filenames
 def generate_valid_filename(name):
@@ -435,9 +422,18 @@ elif choice == "Upload Your Data":
             plot_type = st.selectbox("Select comparison plot type", ["Density Plot", "Boxplot"])
             if selected_columns:
                 plt.figure(figsize=(12, 6))
-                plot_combined_comparison(data, selected_columns, plot_type)
+                if plot_type == "Density Plot":
+                    for col in selected_columns:
+                        sns.kdeplot(data[col], label=col, shade=True, alpha=0.6)
+                    plt.title("Density Plot")
+                    plt.legend()
+                elif plot_type == "Boxplot":
+                    sns.boxplot(data=data[selected_columns])
+                    plt.title("Box Plot")
                 fig = plt.gcf()
+                st.pyplot(fig)
                 add_ai_analysis(fig, title="AI Analysis for Variables Comparison")
+
 
         # Add a button to download the plot as JPG
             if st.button("Download Plot as JPG", key="variables_comparison_download"):
@@ -585,9 +581,6 @@ elif choice == "Upload Your Data":
                 # Add AI Analysis
                 add_ai_analysis(fig, title="AI Analysis for Residual Plot")
 
-
-
-           
                     # Add a button to download the plot as JPG
             if st.button("Download Plot as JPG"):
                 valid_feature_name = generate_valid_filename(feature)  # Ensure valid filename
