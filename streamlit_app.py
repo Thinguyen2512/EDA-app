@@ -466,8 +466,8 @@ elif choice == "Upload Your Data":
                                 ax.set_title(f"Pie Chart of {metric.capitalize()} by {subgroup_col}")
                                 ax.axis('equal')
                                 st.pyplot(fig)
-                            else:
-                                st.error(f"Metric '{metric}' does not exist in the subgroup statistics.")
+                        else:
+                            st.error(f"Metric '{metric}' does not exist in the subgroup statistics.")
                                 
             except ValueError as e:
                 st.error(f"An error occurred: {str(e)}. Please check your data and try again.")
