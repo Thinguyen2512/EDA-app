@@ -76,7 +76,7 @@ if uploaded_file is not None:
                 st.warning(f"No unique values found in column {filter_col}.")
     
     analysis_option = st.sidebar.radio("Choose Analysis Type:", [
-        "Data Cleaning & Descriptive", "Univariate Analysis", "Bivariate Analysis", "Linear Regression"
+        "Data Dictionary", "Univariate Analysis", "Bivariate Analysis", "Linear Regression"
     ])
     
     if analysis_option == "Data Dictionary":
@@ -130,7 +130,7 @@ if uploaded_file is not None:
                 key=str(uuid.uuid4())
             )
 
-    if st.sidebar.checkbox("Bivariate Analysis"):
+    if analysis_option == "Bivariate Analysis":
         st.write("### Bivariate Analysis")
         x_axis = st.selectbox("Select X variable:", df.columns)
         y_axis = st.selectbox("Select Y variable:", df.columns, index=1)
