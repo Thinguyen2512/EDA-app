@@ -47,9 +47,7 @@ if uploaded_file is not None:
     
     st.write("Data has been uploaded:")
     st.dataframe(df)
-    
-    st.sidebar.header("Sidebar for Analysis Options")
-    
+
     filter_col = st.sidebar.selectbox("Filter by Column", ["None"] + df.columns.tolist())
     if filter_col != "None":
         if pd.api.types.is_numeric_dtype(df[filter_col]):
