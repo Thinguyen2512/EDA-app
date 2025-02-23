@@ -3,6 +3,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 from io import StringIO
 
 st.title("Exploratory Data Analysis (EDA) Tool")
