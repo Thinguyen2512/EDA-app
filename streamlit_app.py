@@ -49,7 +49,34 @@ if uploaded_file is not None:
     st.dataframe(df)
     
     st.sidebar.header("Sidebar for Analysis Options")
-    
+
+    filter_col = st.sidebar.selectbox("Filter by Column", ["None"] + df.columns.tolist())
+    if filter_col != "None":
+        if pd.api.types.is_numeric_dtype(df[filter_col]):
+            min_val, max_val = st.sidebar.slider(
+                f"Select range for {filter_col}",
+                float(df[filter_col].min()),
+                float(df[filter_col].max()),
+                (float(df[filter_col].min()), float(df[filter_col].max()))
+            )
+            df = df[(df[filter_col] >= min_val) & (df[filter_col] <= max_val)]
+        else:
+            unique_values = list(df[filter_col].dropna().unique())
+            if unique_values:
+                all_selected = st.sidebar.checkbox(f"Select All {filter_col}", value=True)
+                if all_selected:
+                    selected_values = unique_values
+                else:
+                    selected_values = st.sidebar.multiselect(
+                        f"Select values for {filter_col}",
+                        options=unique_values,
+                        default=[]
+                    )
+                if selected_values:
+                    df = df[df[filter_col].isin(selected_values)]
+            else:
+                st.warning(f"No unique values found in column {filter_col}.")
+                
     if st.sidebar.checkbox("Show Data Dictionary"):
         st.write("### Data Dictionary")
         st.write(pd.DataFrame({"Column Name": df.columns, "Data Type": df.dtypes.values}))
