@@ -79,10 +79,9 @@ if uploaded_file is not None:
         "Data Cleaning & Descriptive", "Univariate Analysis", "Bivariate Analysis", "Linear Regression"
     ])
     
-    if analysis_option == "Data Cleaning & Descriptive":
-        if st.sidebar.checkbox("Show Data Dictionary"):
-            st.write("### Data Dictionary")
-            st.write(pd.DataFrame({"Column Name": df.columns, "Data Type": df.dtypes.values}))
+    if analysis_option == "Data Dictionary":
+        st.write("### Data Dictionary")
+        st.write(pd.DataFrame({"Column Name": df.columns, "Data Type": df.dtypes.values}))
     
     if analysis_option == "Univariate Analysis":
         st.write("### Univariate Analysis")
@@ -131,7 +130,7 @@ if uploaded_file is not None:
                 key=str(uuid.uuid4())
             )
 
-    if st.sidebar.checkbox("Show Bivariate Analysis"):
+    if st.sidebar.checkbox("Bivariate Analysis"):
         st.write("### Bivariate Analysis")
         x_axis = st.selectbox("Select X variable:", df.columns)
         y_axis = st.selectbox("Select Y variable:", df.columns, index=1)
