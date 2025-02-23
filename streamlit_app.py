@@ -49,7 +49,7 @@ if uploaded_file is not None:
     st.dataframe(df)
     
     st.sidebar.header("Sidebar for Analysis Options")
-
+    
     filter_col = st.sidebar.selectbox("Filter by Column", ["None"] + df.columns.tolist())
     if filter_col != "None":
         if pd.api.types.is_numeric_dtype(df[filter_col]):
@@ -76,12 +76,17 @@ if uploaded_file is not None:
                     df = df[df[filter_col].isin(selected_values)]
             else:
                 st.warning(f"No unique values found in column {filter_col}.")
-                
-    if st.sidebar.checkbox("Show Data Dictionary"):
-        st.write("### Data Dictionary")
-        st.write(pd.DataFrame({"Column Name": df.columns, "Data Type": df.dtypes.values}))
     
-    if st.sidebar.checkbox("Show Univariate Analysis"):
+    analysis_option = st.sidebar.radio("Choose Analysis Type:", [
+        "Data Cleaning & Descriptive", "Univariate Analysis", "Bivariate Analysis", "Linear Regression"
+    ])
+    
+    if analysis_option == "Data Cleaning & Descriptive":
+        if st.sidebar.checkbox("Show Data Dictionary"):
+            st.write("### Data Dictionary")
+            st.write(pd.DataFrame({"Column Name": df.columns, "Data Type": df.dtypes.values}))
+    
+    if analysis_option == "Univariate Analysis":
         st.write("### Univariate Analysis")
         feature = st.selectbox("Select variable to plot:", df.columns)
 
@@ -127,7 +132,7 @@ if uploaded_file is not None:
                 mime="image/jpeg",
                 key=str(uuid.uuid4())
             )
-    
+
     if st.sidebar.checkbox("Show Bivariate Analysis"):
         st.write("### Bivariate Analysis")
         x_axis = st.selectbox("Select X variable:", df.columns)
@@ -177,9 +182,39 @@ if uploaded_file is not None:
             mosaic(df, [x_axis, y_axis])
             plt.title(f'Mosaic Plot of {x_axis} and {y_axis}')
             st.pyplot(plt)
-
-    if st.sidebar.checkbox("Show Multiple Linear Regression"):
+    
+    if analysis_option == "Linear Regression":
         st.write("### Multiple Linear Regression")
+        num_list = df.select_dtypes(include=["number"]).columns.tolist()
+        cat_list = df.select_dtypes(include=["object", "category"]).columns.tolist()
+        
+        if cat_list:
+            st.sidebar.header("Categorical Variables")
+            selected_cat_cols = st.sidebar.multiselect("Select columns to create dummy variables:", cat_list)
+            if selected_cat_cols:
+                df = pd.get_dummies(df, columns=selected_cat_cols, drop_first=True)
+        
+        x_cols = st.multiselect("Select Independent Variables (X):", num_list + cat_list)
+        y_col = st.selectbox("Select Dependent Variable (Y):", ["Select Variable"] + num_list)
+        
+        if x_cols and y_col != "Select Variable":
+            try:
+                X, y_values = clean_and_prepare_data(df, x_cols, y_col, cat_list)
+                if X is not None and y_values is not None:
+                    X = sm.add_constant(X)
+                    model = sm.OLS(y_values, X).fit()
+                    st.write(model.summary())
+                    
+                    st.write("### Residual Plot")
+                    residuals = model.resid
+                    fig, ax = plt.subplots()
+                    sns.residplot(x=model.fittedvalues, y=residuals, lowess=True, ax=ax, line_kws={"color": "red"})
+                    ax.set_xlabel("Fitted Values")
+                    ax.set_ylabel("Residuals")
+                    ax.set_title("Residuals vs Fitted")
+                    st.pyplot(fig)
+            except Exception as e:
+                st.error(f"Error during regression analysis: {e}")
 
 
 
