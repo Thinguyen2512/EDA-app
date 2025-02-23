@@ -38,11 +38,11 @@ if uploaded_file is not None:
     
     st.sidebar.header("Sidebar for Analysis Options")
     
-    if st.sidebar.checkbox("Show Data Dictionary"):
+    if st.sidebar.selectbox("Show Data Dictionary"):
         st.write("### Data Dictionary")
         st.write(pd.DataFrame({"Column Name": df.columns, "Data Type": df.dtypes.values}))
     
-    if st.sidebar.checkbox("Show Univariate Analysis"):
+    if st.sidebar.selectbox("Show Univariate Analysis"):
         st.write("### Univariate Analysis")
         selected_column = st.selectbox("Select a column", df.columns)
         if df[selected_column].dtype in ['int64', 'float64']:
@@ -54,7 +54,7 @@ if uploaded_file is not None:
             ax[1].set_title("Boxplot")
             st.pyplot(fig)
     
-    if st.sidebar.checkbox("Show Bivariate Analysis"):
+    if st.sidebar.selectbox("Show Bivariate Analysis"):
         st.write("### Bivariate Analysis")
         col1, col2 = st.columns(2)
         x_col = col1.selectbox("Select X variable", df.columns)
@@ -70,7 +70,7 @@ if uploaded_file is not None:
             sns.heatmap(df.corr(), annot=True, cmap='coolwarm', ax=ax)
             st.pyplot(fig)
     
-    if st.sidebar.checkbox("Show Multiple Linear Regression"):
+    if st.sidebar.selectbox("Show Multiple Linear Regression"):
         st.write("### Multiple Linear Regression")
         num_list = df.select_dtypes(include=["number"]).columns.tolist()
         cat_list = df.select_dtypes(include=["object", "category"]).columns.tolist()
