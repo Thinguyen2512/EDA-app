@@ -36,6 +36,8 @@ if uploaded_file is not None:
     st.write("Data has been uploaded:")
     st.dataframe(df)
     
+    st.sidebar.header("Sidebar for Analysis Options")
+    
     if st.sidebar.checkbox("Show Data Dictionary"):
         st.write("### Data Dictionary")
         st.write(pd.DataFrame({"Column Name": df.columns, "Data Type": df.dtypes.values}))
@@ -100,6 +102,7 @@ if uploaded_file is not None:
                     st.pyplot(fig)
             except Exception as e:
                 st.error(f"Error during regression analysis: {e}")
+
 
 
 
