@@ -9,6 +9,31 @@ import uuid
 from io import StringIO
 from statsmodels.graphics.mosaicplot import mosaic
 
+def descriptive_stats(df, feature):
+    stats_dict = {
+        "Mean": df[feature].mean(),
+        "Median": df[feature].median(),
+        "Mode": df[feature].mode().values[0],
+        "Min": df[feature].min(),
+        "Max": df[feature].max(),
+        "Range": df[feature].max() - df[feature].min(),
+        "Std Dev": df[feature].std(),
+        "Q1": df[feature].quantile(0.25),
+        "Q3": df[feature].quantile(0.75)
+    }
+    return stats_dict
+
+def confidence_interval_mean(df, feature, confidence=0.95):
+    sample_mean = np.mean(df[feature])
+    sample_std = np.std(df[feature], ddof=1)
+    n = len(df[feature])
+    margin_of_error = stats.t.ppf((1 + confidence) / 2., n - 1) * (sample_std / np.sqrt(n))
+    return sample_mean - margin_of_error, sample_mean + margin_of_error
+
+def hypothesis_test_mean(df, feature, pop_mean, alpha=0.05):
+    t_stat, p_value = stats.ttest_1samp(df[feature].dropna(), pop_mean)
+    return t_stat, p_value, p_value < alpha
+
 def clean_and_prepare_data(df, x_cols, y_col, cat_list):
     try:
         X = df[x_cols]
@@ -120,101 +145,74 @@ if uploaded_file is not None:
             st.write(pd.DataFrame(column_info))
     
     if analysis_option == "Univariate Analysis":
-        st.write("### Univariate Analysis")
-        feature = st.selectbox("Select variable to plot:", df.columns)
-
+        feature = st.selectbox("Select a Column:", df.columns)
+        
         if np.issubdtype(df[feature].dtype, np.number):
-            st.write("### Numerical Variable Options")
-            plot_type = st.selectbox("Select plot type:", ["Histogram", "Box Plot"])
-            plt.figure(figsize=(10, 6))
-
-            if plot_type == "Histogram":
-                sns.histplot(df[feature], kde=True)
-                plt.title(f'Histogram of {feature}')
-                plt.xlabel(feature)
-                plt.ylabel('Frequency')
-
-            elif plot_type == "Box Plot":
-                sns.boxplot(y=df[feature])
-                plt.title(f'Boxplot of {feature}')
-
+            st.write("### Numerical Variable Analysis")
+            st.write("#### Descriptive Statistics")
+            st.json(descriptive_stats(df, feature))
+            
+            st.write("#### Histogram")
+            fig, ax = plt.subplots()
+            sns.histplot(df[feature], kde=True, ax=ax)
+            st.pyplot(fig)
+            
+            st.write("#### Boxplot")
+            fig, ax = plt.subplots()
+            sns.boxplot(y=df[feature], ax=ax)
+            st.pyplot(fig)
+            
+            st.write("#### Confidence Interval (95%)")
+            ci_lower, ci_upper = confidence_interval_mean(df, feature)
+            st.write(f"95% Confidence Interval: ({ci_lower:.2f}, {ci_upper:.2f})")
+            
+            pop_mean = st.number_input("Enter Population Mean for Hypothesis Test:", value=df[feature].mean())
+            t_stat, p_value, reject = hypothesis_test_mean(df, feature, pop_mean)
+            st.write(f"T-Statistic: {t_stat:.2f}, P-Value: {p_value:.4f}")
+            st.write("Reject Null Hypothesis" if reject else "Fail to Reject Null Hypothesis")
+        
         else:
-            st.write("### Categorical Variable Options")
-            plot_type = st.selectbox("Select plot type:", ["Bar Chart", "Pie Chart"])
-            plt.figure(figsize=(10, 6))
-
-            if plot_type == "Bar Chart":
-                df[feature].value_counts().plot(kind='bar')
-                plt.title(f'Bar Chart of {feature}')
-                plt.xlabel(feature)
-                plt.ylabel('Count')
-
-            elif plot_type == "Pie Chart":
-                df[feature].value_counts().plot(kind='pie', autopct='%1.1f%%')
-                plt.title(f'Pie Chart of {feature}')
-
-        st.pyplot(plt)
-
-        if st.button("Download Plot as JPG"):
-            valid_feature_name = generate_valid_filename(feature)
-            buf = save_plot_as_jpg(plt.gcf())
-            st.download_button(
-                label="Download JPG",
-                data=buf,
-                file_name=f"{valid_feature_name}_plot.jpg",
-                mime="image/jpeg",
-                key=str(uuid.uuid4())
-            )
-
+            st.write("### Categorical Variable Analysis")
+            st.write("#### Frequency Table")
+            st.dataframe(df[feature].value_counts(normalize=True).reset_index())
+            
+            st.write("#### Bar Chart")
+            fig, ax = plt.subplots()
+            df[feature].value_counts().plot(kind='bar', ax=ax)
+            st.pyplot(fig)
+            
     if analysis_option == "Bivariate Analysis":
-        st.write("### Bivariate Analysis")
-        x_axis = st.selectbox("Select X variable:", df.columns)
-        y_axis = st.selectbox("Select Y variable:", df.columns, index=1)
+        x_var = st.selectbox("Select X Variable:", df.columns)
+        y_var = st.selectbox("Select Y Variable:", df.columns, index=1)
+        
+        x_is_num = np.issubdtype(df[x_var].dtype, np.number)
+        y_is_num = np.issubdtype(df[y_var].dtype, np.number)
+        
+        if x_is_num and y_is_num:
+            st.write("### Numerical vs Numerical")
+            st.write("#### Scatter Plot")
+            fig, ax = plt.subplots()
+            sns.scatterplot(data=df, x=x_var, y=y_var, ax=ax)
+            st.pyplot(fig)
+            
+            st.write("#### Pearson Correlation")
+            corr, p_value = stats.pearsonr(df[x_var].dropna(), df[y_var].dropna())
+            st.write(f"Pearson Correlation: {corr:.2f}, P-Value: {p_value:.4f}")
+            
+        elif x_is_num and not y_is_num:
+            st.write("### Numerical vs Categorical")
+            st.write("#### Boxplot")
+            fig, ax = plt.subplots()
+            sns.boxplot(x=df[y_var], y=df[x_var], ax=ax)
+            st.pyplot(fig)
+            
+        elif not x_is_num and not y_is_num:
+            st.write("### Categorical vs Categorical")
+            st.write("#### Mosaic Plot")
+            fig, ax = plt.subplots()
+            mosaic(df, [x_var, y_var], ax=ax)
+            st.pyplot(fig)
 
-        x_is_numeric = np.issubdtype(df[x_axis].dtype, np.number)
-        y_is_numeric = np.issubdtype(df[y_axis].dtype, np.number)
-
-        if x_is_numeric and y_is_numeric:
-            st.write("### Two Numerical Variables Options")
-            plot_type = st.selectbox("Select plot type:", ["Scatter Plot", "Line Graph", "Area Chart"])
-            plt.figure(figsize=(10, 6))
-
-            if plot_type == "Scatter Plot":
-                sns.scatterplot(data=df, x=x_axis, y=y_axis)
-                plt.title(f'Scatter Plot of {y_axis} vs {x_axis}')
-                plt.xlabel(x_axis)
-                plt.ylabel(y_axis)
-
-            elif plot_type == "Line Graph":
-                plt.plot(df[x_axis], df[y_axis])
-                plt.title(f'Line Graph of {y_axis} vs {x_axis}')
-                plt.xlabel(x_axis)
-                plt.ylabel(y_axis)
-
-            elif plot_type == "Area Chart":
-                df[[x_axis, y_axis]].plot(kind='area')
-                plt.title(f'Area Chart of {y_axis} vs {x_axis}')
-                plt.xlabel(x_axis)
-                plt.ylabel(y_axis)
-
-            st.pyplot(plt)
-
-        elif x_is_numeric and not y_is_numeric:
-            st.write("### One Numerical and One Categorical Variable Options")
-            plt.figure(figsize=(10, 6))
-            grouped_data = df.groupby(y_axis)[x_axis].mean().sort_values()
-            grouped_data.plot(kind='bar')
-            plt.title(f'Bar Chart of {x_axis} by {y_axis}')
-            plt.xlabel(y_axis)
-            plt.ylabel(x_axis)
-            st.pyplot(plt)
-
-        elif not x_is_numeric and not y_is_numeric:
-            st.write("### Two Categorical Variables Options")
-            plt.figure(figsize=(10, 6))
-            mosaic(df, [x_axis, y_axis])
-            plt.title(f'Mosaic Plot of {x_axis} and {y_axis}')
-            st.pyplot(plt)
     
     if analysis_option == "Linear Regression":
         st.write("### Multiple Linear Regression")
