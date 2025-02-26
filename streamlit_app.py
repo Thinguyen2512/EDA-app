@@ -79,32 +79,32 @@ if uploaded_file is not None:
         "Data Dictionary", "Univariate Analysis", "Bivariate Analysis", "Linear Regression"
     ])
     
-    if analysis_option == "Data Dictionary":
-    st.write("### Data Dictionary")
+        if analysis_option == "Data Dictionary":
+        st.write("### Data Dictionary")
 
     # Prompt for dataset description
-    dataset_description = st.text_area(
-        "Provide a detailed description of the dataset:",
-        "Include details such as what it is, what each row represents, how/when it was collected, who owns it, and conditions of use."
-    )
+        dataset_description = st.text_area(
+            "Provide a detailed description of the dataset:",
+            "Include details such as what it is, what each row represents, how/when it was collected, who owns it, and conditions of use."
+        )
 
     # Display dataset description if provided
-    if dataset_description:
-        st.write("#### Dataset Description")
-        st.write(dataset_description)
+        if dataset_description:
+            st.write("#### Dataset Description")
+            st.write(dataset_description)
 
     # Create a DataFrame for the column information
-    column_info = []
-    for col in df.columns:
-        col_description = st.text_area(
-            f"Describe the column '{col}':",
-            "Include details such as data type, meaning, units, and possible value range."
-        )
-        column_info.append({"Column Name": col, "Data Type": str(df[col].dtype), "Description": col_description})
+        column_info = []
+        for col in df.columns:
+            col_description = st.text_area(
+                f"Describe the column '{col}':",
+                "Include details such as data type, meaning, units, and possible value range."
+            )
+            column_info.append({"Column Name": col, "Data Type": str(df[col].dtype), "Description": col_description})
 
     # Display the Data Dictionary table
-    st.write("#### Column Details")
-    st.write(pd.DataFrame(column_info))
+        st.write("#### Column Details")
+        st.write(pd.DataFrame(column_info))
     
     if analysis_option == "Univariate Analysis":
         st.write("### Univariate Analysis")
