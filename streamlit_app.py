@@ -82,29 +82,42 @@ if uploaded_file is not None:
     if analysis_option == "Data Dictionary":
         st.write("### Data Dictionary")
 
-        # Prompt for dataset description
-        dataset_description = st.text_area(
-            "Provide a detailed description of the dataset:",
-            "Include details such as what it is, what each row represents, how/when it was collected, who owns it, and conditions of use."
-        )
+        # Section to upload a Data Dictionary file
+        st.subheader("Upload Data Dictionary File")
+        dict_file = st.file_uploader("Upload a CSV or Excel file for the Data Dictionary", type=["csv", "xlsx"])
+        
+        if dict_file is not None:
+            if dict_file.name.endswith('.csv'):
+                data_dict_df = pd.read_csv(dict_file)
+            else:
+                data_dict_df = pd.read_excel(dict_file, engine='openpyxl')
 
-        # Display dataset description if provided
-        if dataset_description:
-            st.write("#### Dataset Description")
-            st.write(dataset_description)
-
-        # Create a DataFrame for the column information
-        column_info = []
-        for col in df.columns:
-            col_description = st.text_area(
-                f"Describe the column '{col}':",
-                "Include details such as data type, meaning, units, and possible value range."
+            st.write("#### Uploaded Data Dictionary:")
+            st.dataframe(data_dict_df)
+        else:
+            # Prompt for dataset description
+            dataset_description = st.text_area(
+                "Provide a detailed description of the dataset:",
+                "Include details such as what it is, what each row represents, how/when it was collected, who owns it, and conditions of use."
             )
-            column_info.append({"Column Name": col, "Data Type": str(df[col].dtype), "Description": col_description})
 
-        # Display the Data Dictionary table
-        st.write("#### Column Details")
-        st.write(pd.DataFrame(column_info))
+            # Display dataset description if provided
+            if dataset_description:
+                st.write("#### Dataset Description")
+                st.write(dataset_description)
+
+            # Create a DataFrame for the column information
+            column_info = []
+            for col in df.columns:
+                col_description = st.text_area(
+                    f"Describe the column '{col}':",
+                    "Include details such as data type, meaning, units, and possible value range."
+                )
+                column_info.append({"Column Name": col, "Data Type": str(df[col].dtype), "Description": col_description})
+
+            # Display the Data Dictionary table
+            st.write("#### Column Details")
+            st.write(pd.DataFrame(column_info))
     
     if analysis_option == "Univariate Analysis":
         st.write("### Univariate Analysis")
