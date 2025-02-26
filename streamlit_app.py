@@ -8,6 +8,7 @@ import numpy as np
 import uuid
 from io import StringIO
 from statsmodels.graphics.mosaicplot import mosaic
+import scipy.stats as stats
 
 def descriptive_stats(df, feature):
     stats_dict = {
@@ -23,12 +24,13 @@ def descriptive_stats(df, feature):
     }
     return stats_dict
 
-def confidence_interval_mean(df, feature, confidence=0.95):
-    sample_mean = np.mean(df[feature])
-    sample_std = np.std(df[feature], ddof=1)
-    n = len(df[feature])
+def confidence_interval_mean(df, column, confidence=0.95):
+    sample = df[column].dropna()
+    n = len(sample)
+    mean = sample.mean()
+    sample_std = sample.std(ddof=1)
     margin_of_error = stats.t.ppf((1 + confidence) / 2., n - 1) * (sample_std / np.sqrt(n))
-    return sample_mean - margin_of_error, sample_mean + margin_of_error
+    return mean - margin_of_error, mean + margin_of_error
 
 def hypothesis_test_mean(df, feature, pop_mean, alpha=0.05):
     t_stat, p_value = stats.ttest_1samp(df[feature].dropna(), pop_mean)
@@ -145,41 +147,58 @@ if uploaded_file is not None:
             st.write(pd.DataFrame(column_info))
     
     if analysis_option == "Univariate Analysis":
-        feature = st.selectbox("Select a Column:", df.columns)
-        
+        st.write("### Univariate Analysis")
+        feature = st.selectbox("Select variable to analyze:", df.columns)
+
         if np.issubdtype(df[feature].dtype, np.number):
-            st.write("### Numerical Variable Analysis")
-            st.write("#### Descriptive Statistics")
-            st.json(descriptive_stats(df, feature))
+            plot_type = st.selectbox("Select plot type:", ["Histogram", "Box Plot"])
+            plt.figure(figsize=(10, 6))
             
-            st.write("#### Histogram")
-            fig, ax = plt.subplots()
-            sns.histplot(df[feature], kde=True, ax=ax)
-            st.pyplot(fig)
+            if plot_type == "Histogram":
+                sns.histplot(df[feature], kde=True)
+                plt.title(f'Histogram of {feature}')
+                plt.xlabel(feature)
+                plt.ylabel('Frequency')
             
-            st.write("#### Boxplot")
-            fig, ax = plt.subplots()
-            sns.boxplot(y=df[feature], ax=ax)
-            st.pyplot(fig)
+            elif plot_type == "Box Plot":
+                sns.boxplot(y=df[feature])
+                plt.title(f'Boxplot of {feature}')
             
-            st.write("#### Confidence Interval (95%)")
+            st.pyplot(plt)
+            
+            if st.button("Download Plot as JPG"):
+                buf = save_plot_as_jpg(plt.gcf())
+                st.download_button("Download JPG", data=buf, file_name=f"{feature}_plot.jpg", mime="image/jpeg")
+            
+            st.write("### Descriptive Statistics")
+            st.write(df[feature].describe())
+            
+            st.write("### Confidence Interval (95%)")
             ci_lower, ci_upper = confidence_interval_mean(df, feature)
-            st.write(f"95% Confidence Interval: ({ci_lower:.2f}, {ci_upper:.2f})")
-            
-            pop_mean = st.number_input("Enter Population Mean for Hypothesis Test:", value=df[feature].mean())
-            t_stat, p_value, reject = hypothesis_test_mean(df, feature, pop_mean)
-            st.write(f"T-Statistic: {t_stat:.2f}, P-Value: {p_value:.4f}")
-            st.write("Reject Null Hypothesis" if reject else "Fail to Reject Null Hypothesis")
-        
+            st.write(f"95% CI: ({ci_lower:.3f}, {ci_upper:.3f})")
+
         else:
-            st.write("### Categorical Variable Analysis")
-            st.write("#### Frequency Table")
-            st.dataframe(df[feature].value_counts(normalize=True).reset_index())
+            plot_type = st.selectbox("Select plot type:", ["Bar Chart", "Pie Chart"])
+            plt.figure(figsize=(10, 6))
             
-            st.write("#### Bar Chart")
-            fig, ax = plt.subplots()
-            df[feature].value_counts().plot(kind='bar', ax=ax)
-            st.pyplot(fig)
+            if plot_type == "Bar Chart":
+                df[feature].value_counts().plot(kind='bar')
+                plt.title(f'Bar Chart of {feature}')
+                plt.xlabel(feature)
+                plt.ylabel('Count')
+            
+            elif plot_type == "Pie Chart":
+                df[feature].value_counts().plot(kind='pie', autopct='%1.1f%%')
+                plt.title(f'Pie Chart of {feature}')
+            
+            st.pyplot(plt)
+            
+            if st.button("Download Plot as JPG"):
+                buf = save_plot_as_jpg(plt.gcf())
+                st.download_button("Download JPG", data=buf, file_name=f"{feature}_plot.jpg", mime="image/jpeg")
+
+            st.write("### Frequency Table")
+            st.write(df[feature].value_counts(normalize=True) * 100)
             
     if analysis_option == "Bivariate Analysis":
         x_var = st.selectbox("Select X Variable:", df.columns)
